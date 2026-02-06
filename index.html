@@ -1,73 +1,732 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GracefulHQ</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>graceful — A Content-Driven Digital Agency</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #050505;
+      --bg-2: #0c0c0c;
+      --surface: #111113;
+      --surface-2: #1a1a1d;
+      --border: rgba(255,255,255,0.06);
+      --border-light: rgba(255,255,255,0.12);
+      --text: #f5f5f7;
+      --text-muted: #8e8e93;
+      --text-dim: #636366;
+      --white: #ffffff;
+      --accent: #c8a2ff;
+      --accent-2: #9d6eff;
+      --warm: #ffb86c;
+      --teal: #64ffda;
+    }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::selection { background: var(--accent-2); color: white; }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 1300px; margin: 0 auto; padding: 0 clamp(1.5rem, 4vw, 3rem); }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      padding: 1.5rem 0;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    nav.scrolled {
+      padding: 0.8rem 0;
+      background: rgba(5, 5, 5, 0.75);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+    }
+    nav .container { display: flex; justify-content: space-between; align-items: center; }
+    .logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem; font-weight: 400; letter-spacing: -0.01em;
+      color: var(--white);
+    }
+    .logo img { height: 64px; width: auto; display: block; }
+    .nav-cta {
+      padding: 0.6rem 1.6rem; border-radius: 100px;
+      background: var(--white); color: var(--bg);
+      font-weight: 600; font-size: 0.85rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: none; cursor: pointer;
+    }
+    .nav-cta:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,255,255,0.15); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+      position: relative; overflow: hidden;
+      padding: 8rem 0 4rem;
+    }
+    .hero-glow {
+      position: absolute; width: 800px; height: 800px;
+      border-radius: 50%; filter: blur(150px); opacity: 0.08;
+      pointer-events: none;
+    }
+    .hero-glow-1 { top: -300px; right: -200px; background: var(--accent); }
+    .hero-glow-2 { bottom: -300px; left: -200px; background: var(--teal); }
+
+    .hero-content { position: relative; z-index: 1; text-align: center; max-width: 1000px; margin: 0 auto; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      padding: 0.45rem 1.2rem; border-radius: 100px;
+      background: rgba(200, 162, 255, 0.08);
+      border: 1px solid rgba(200, 162, 255, 0.15);
+      font-size: 0.8rem; font-weight: 500; color: var(--accent);
+      margin-bottom: 2.5rem; letter-spacing: 0.02em;
+    }
+    .hero-badge .pulse-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--teal);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3.2rem, 8vw, 6.5rem);
+      font-weight: 900; line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 2rem;
+    }
+    .hero h1 .underline-wrap {
+      position: relative; display: inline-block;
+    }
+    .hero h1 .underline-wrap::after {
+      content: ''; position: absolute;
+      bottom: 0.05em; left: -2%; right: -2%;
+      height: 0.08em;
+      background: linear-gradient(90deg, var(--accent), var(--teal));
+      border-radius: 4px;
+      transform: scaleX(0);
+      animation: drawLine 1s 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    @keyframes drawLine { to { transform: scaleX(1); } }
+
+    .hero-desc {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--text-muted);
+      max-width: 680px; margin: 0 auto 3rem;
+      line-height: 1.8;
+    }
+
+    /* ── PHONE VIDEO ── */
+    .phone-video-wrap {
+      margin-top: 3rem;
+      display: flex; justify-content: center;
+    }
+    .phone-video-wrap video {
+      width: 100%;
+      max-width: 900px;
+      border-radius: 20px;
+      border: 2px solid rgba(255,255,255,0.08);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    }
+
+    /* ── SECTION COMMON ── */
+    section { padding: clamp(4rem, 10vw, 8rem) 0; }
+
+    .section-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 1.5rem;
+    }
+    .section-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      font-weight: 900; line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    /* ── TEAM ── */
+    .team-section { overflow: hidden; }
+    .team-header { text-align: center; margin-bottom: 4rem; }
+    .team-founders {
+      display: flex; justify-content: center; margin-bottom: 4rem;
+    }
+    .founder-card {
+      width: min(500px, 80vw);
+      aspect-ratio: 4/3;
+      border-radius: 24px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--border-light);
+      background: linear-gradient(135deg, #2a2a2e, #1a1a1d);
+    }
+    .founder-card img {
+      width: 100%; height: 100%; object-fit: cover;
+      position: absolute; inset: 0;
+    }
+    .founder-card .founder-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(5,5,5,0.9) 0%, transparent 60%);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 2.5rem;
+    }
+    .founder-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 700;
+    }
+    .founder-card .role { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .team-member { text-align: center; }
+    .team-avatar {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      margin: 0 auto 0.75rem;
+      overflow: hidden;
+      border: 2px solid var(--border-light);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+    .team-avatar::after {
+      content: ''; position: absolute; inset: -2px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--teal));
+      z-index: -1;
+      opacity: 0; transition: opacity 0.4s;
+    }
+    .team-member:hover .team-avatar { transform: translateY(-4px) scale(1.05); border-color: transparent; }
+    .team-member:hover .team-avatar::after { opacity: 1; }
+    .team-avatar-inner {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2a2a2e 0%, #3a3a3e 100%);
+    }
+    .team-avatar img {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .team-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1rem; font-weight: 400;
+    }
+    .team-role { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.15rem; }
+
+    /* ── MANIFESTO ── */
+    .manifesto {
+      padding: clamp(5rem, 12vw, 10rem) 0;
+    }
+    .manifesto-text {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.5rem, 3.5vw, 2.8rem);
+      font-weight: 700; line-height: 1.4;
+      max-width: 900px;
+    }
+    .manifesto-text .highlight {
+      background: linear-gradient(90deg, var(--accent), var(--teal));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── BRANDS ── */
+    .brands-section {
+      background: var(--white);
+      color: var(--bg);
+      padding: clamp(4rem, 8vw, 6rem) 0;
+      position: relative;
+    }
+    .brands-section .section-heading { color: var(--bg); }
+    .brands-section .section-label { color: var(--text-dim); }
+    .brands-header { text-align: center; margin-bottom: 4rem; }
+
+    .brands-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 2.5rem 3rem;
+      align-items: center;
+      justify-items: center;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .brand-logo {
+      font-family: 'Inter', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      color: #333;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      opacity: 0.5;
+      transition: opacity 0.3s;
+      white-space: nowrap;
+    }
+    .brand-logo:hover { opacity: 1; }
+    .brand-logo.serif { font-family: 'DM Serif Display', serif; font-size: 1.2rem; text-transform: none; letter-spacing: 0; }
+
+    /* ── CTA / GROWTH ── */
+    .growth-section {
+      position: relative;
+      overflow: hidden;
+    }
+    .growth-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+    .growth-text .section-heading { margin-bottom: 1.5rem; }
+    .growth-text p { color: var(--text-muted); font-size: 1.05rem; line-height: 1.8; }
+
+    .growth-chart {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .growth-chart::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--teal));
+    }
+    .chart-label { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 1rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .chart-svg { width: 100%; height: auto; }
+
+    /* ── STATS ── */
+    .stats-section {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: clamp(3rem, 6vw, 5rem) 0;
+    }
+    .stats-header {
+      text-align: center; margin-bottom: 4rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .stat-card:hover {
+      border-color: rgba(200, 162, 255, 0.2);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .stat-card p {
+      font-size: 0.95rem; color: var(--text-muted); line-height: 1.7;
+    }
+    .stat-card .stat-highlight {
+      font-weight: 700; color: var(--white);
+      text-decoration: underline;
+      text-decoration-color: var(--accent);
+      text-underline-offset: 3px;
+    }
+
+    /* ── SERVICES ── */
+    .services-section { }
+    .services-header { text-align: center; margin-bottom: 4rem; }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .service-pill {
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.1rem 1.5rem;
+      border: 1px solid var(--border-light);
+      border-radius: 100px;
+      font-size: 0.9rem; font-weight: 500;
+      color: var(--text-muted);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      text-align: center;
+    }
+    .service-pill:hover {
+      color: var(--white);
+      background: rgba(200, 162, 255, 0.08);
+      border-color: rgba(200, 162, 255, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(200, 162, 255, 0.1);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 4rem 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .footer-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .footer-links {
+      display: flex; justify-content: center; gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    .footer-links a {
+      font-size: 0.85rem; color: var(--text-dim);
+      transition: color 0.3s;
+    }
+    .footer-links a:hover { color: var(--white); }
+    .footer-copy { font-size: 0.8rem; color: var(--text-dim); }
+
+    /* ── SCROLL ANIMATIONS ── */
+    .reveal {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity 0.9s cubic-bezier(0.4, 0, 0.2, 1),
+                  transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 968px) {
+      .growth-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .services-grid { grid-template-columns: repeat(2, 1fr); }
+      .team-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 1.5rem; }
+    }
+    @media (max-width: 640px) {
+      .phone-mockup { border-radius: 16px; }
+      .services-grid { grid-template-columns: 1fr 1fr; }
+      .brands-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+      .team-grid { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+      .team-avatar { width: 90px; height: 90px; }
+    }
+
+    /* ── NOISE TEXTURE ── */
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: 0.4;
+    }
+  </style>
 </head>
 <body>
-  <header class="header">
-    <nav class="nav container">
-      <a href="#" class="logo">GracefulHQ</a>
-      <ul class="nav-links">
-        <li><a href="#about">About</a></li>
-        <li><a href="#features">Features</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-    </nav>
-  </header>
 
+  <!-- NAV -->
+  <nav id="navbar">
+    <div class="container">
+      <a href="#" class="logo"><img src="assets/logo/graceful-w.png.webp" alt="graceful" /></a>
+      <a href="mailto:hi@thegracefulcompany.com" class="nav-cta">Get in Touch</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
   <section class="hero">
+    <div class="hero-glow hero-glow-1"></div>
+    <div class="hero-glow hero-glow-2"></div>
     <div class="container">
-      <h1>Build Something <span class="highlight">Graceful</span></h1>
-      <p class="hero-subtitle">Elegant solutions for modern challenges. We craft software that feels effortless.</p>
-      <a href="#about" class="btn">Learn More</a>
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="pulse-dot"></span>
+          Available for new partnerships
+        </div>
+        <h1>
+          A <span class="underline-wrap">content-driven</span><br />
+          digital agency
+        </h1>
+        <p class="hero-desc">
+          We focus on creating strategic and engaging content to help your
+          business reach its target audience effectively. Our team is dedicated
+          to crafting compelling narratives that resonate with customers and
+          drive results.
+        </p>
+      </div>
+
+      <div class="phone-video-wrap reveal">
+        <video autoplay loop muted playsinline poster="assets/phones-poster.jpg" preload="auto">
+          <source src="assets/phones-web.mp4" type="video/mp4" />
+          <source src="assets/phones.mp4" type="video/mp4" />
+        </video>
+      </div>
     </div>
   </section>
 
-  <section id="about" class="about">
+  <!-- TEAM -->
+  <section class="team-section">
     <div class="container">
-      <h2>About Us</h2>
-      <p>GracefulHQ is dedicated to building thoughtful, well-crafted software. We believe great products come from a relentless focus on simplicity, clarity, and care for the people who use them.</p>
-    </div>
-  </section>
+      <div class="team-header reveal">
+        <div class="section-label">Our People</div>
+        <h2 class="section-heading">Meet the team</h2>
+      </div>
 
-  <section id="features" class="features">
-    <div class="container">
-      <h2>What We Do</h2>
-      <div class="feature-grid">
-        <div class="feature-card">
-          <div class="feature-icon">&#9672;</div>
-          <h3>Design</h3>
-          <p>Clean, intuitive interfaces that put the user first.</p>
+      <div class="team-founders reveal">
+        <div class="founder-card">
+          <img src="assets/staff/Dave %26 Kari.JPG" alt="Dave & Kari - Co-Founders" />
+          <div class="founder-overlay">
+            <h3>Dave &amp; Kari</h3>
+            <div class="role">Co-Founders</div>
+          </div>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#9881;</div>
-          <h3>Engineering</h3>
-          <p>Robust, maintainable code built on solid foundations.</p>
+      </div>
+
+      <div class="team-grid">
+        <div class="team-member reveal">
+          <div class="team-avatar"><img src="assets/staff/Alyssa.png.webp" alt="Alyssa" /></div>
+          <div class="team-name">Alyssa</div>
+          <div class="team-role">Content Creator</div>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#9889;</div>
-          <h3>Performance</h3>
-          <p>Fast, responsive experiences across every device.</p>
+        <div class="team-member reveal reveal-delay-1">
+          <div class="team-avatar"><img src="assets/staff/Ariel.png.webp" alt="Ariel" /></div>
+          <div class="team-name">Ariel</div>
+          <div class="team-role">Content Creator</div>
+        </div>
+        <div class="team-member reveal reveal-delay-2">
+          <div class="team-avatar"><img src="assets/staff/Patricia+Graceful.png.webp" alt="Patricia" /></div>
+          <div class="team-name">Patricia</div>
+          <div class="team-role">Content Creator</div>
+        </div>
+        <div class="team-member reveal reveal-delay-3">
+          <div class="team-avatar"><img src="assets/staff/reece+Photographer.png.webp" alt="Reece" /></div>
+          <div class="team-name">Reece</div>
+          <div class="team-role">Photographer</div>
+        </div>
+        <div class="team-member reveal">
+          <div class="team-avatar"><img src="assets/staff/Daniel.png.webp" alt="Daniel" /></div>
+          <div class="team-name">Daniel</div>
+          <div class="team-role">Media Buyer</div>
+        </div>
+        <div class="team-member reveal reveal-delay-1">
+          <div class="team-avatar"><img src="assets/staff/Maria.png.webp" alt="Maria" /></div>
+          <div class="team-name">Maria</div>
+          <div class="team-role">Content Creator</div>
+        </div>
+        <div class="team-member reveal reveal-delay-2">
+          <div class="team-avatar"><img src="assets/staff/Hunter.png.webp" alt="Hunter" /></div>
+          <div class="team-name">Hunter</div>
+          <div class="team-role">Media Buyer</div>
+        </div>
+        <div class="team-member reveal reveal-delay-3">
+          <div class="team-avatar"><img src="assets/staff/Anna.png.webp" alt="Anna" /></div>
+          <div class="team-name">Anna</div>
+          <div class="team-role">Content Creator</div>
+        </div>
+        <div class="team-member reveal">
+          <div class="team-avatar"><img src="assets/staff/Marcus.png.webp" alt="Marcus" /></div>
+          <div class="team-name">Marcus</div>
+          <div class="team-role">Photographer</div>
+        </div>
+        <div class="team-member reveal reveal-delay-1">
+          <div class="team-avatar"><img src="assets/staff/Roman.png.webp" alt="Roman" /></div>
+          <div class="team-name">Roman</div>
+          <div class="team-role">Videographer</div>
+        </div>
+        <div class="team-member reveal reveal-delay-2">
+          <div class="team-avatar"><img src="assets/staff/Ellen+Graceful.png.webp" alt="Ellen" /></div>
+          <div class="team-name">Ellen</div>
+          <div class="team-role">Graphic Designer</div>
+        </div>
+        <div class="team-member reveal reveal-delay-3">
+          <div class="team-avatar"><img src="assets/staff/Kate+Graceful.png.webp" alt="Kate" /></div>
+          <div class="team-name">Kate</div>
+          <div class="team-role">Content Creator</div>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="contact" class="contact">
+  <!-- MANIFESTO -->
+  <section class="manifesto">
     <div class="container">
-      <h2>Get in Touch</h2>
-      <p>Interested in working together? We'd love to hear from you.</p>
-      <a href="mailto:hello@gracefulhq.com" class="btn btn-outline">Say Hello</a>
+      <div class="manifesto-text reveal">
+        <span class="highlight">Make no mistake...</span> We are bold in everything we do and
+        are not afraid to stand out from the crowd. We come together unapologetically to
+        <span class="highlight">disrupt the current landscape</span> of digital marketing.
+        We do what works, study culture, try new things, adapt to community &mdash;
+        all to grow our brands.
+      </div>
     </div>
   </section>
 
-  <footer class="footer">
+  <!-- BRANDS -->
+  <section class="brands-section">
     <div class="container">
-      <p>&copy; 2026 GracefulHQ. All rights reserved.</p>
+      <div class="brands-header reveal">
+        <div class="section-label" style="color: #888;">Trusted Partners</div>
+        <h2 class="section-heading">Brands trust us</h2>
+      </div>
+      <div class="brands-grid reveal">
+        <div class="brand-logo">Target</div>
+        <div class="brand-logo">Amazon</div>
+        <div class="brand-logo">Google</div>
+        <div class="brand-logo">Hasbro</div>
+        <div class="brand-logo serif">Margaritaville</div>
+        <div class="brand-logo">M&amp;M's</div>
+        <div class="brand-logo">Kohl's</div>
+        <div class="brand-logo">Banana Boat</div>
+        <div class="brand-logo serif">Saucony</div>
+        <div class="brand-logo">Hobby Lobby</div>
+        <div class="brand-logo">Legoland</div>
+        <div class="brand-logo serif">Chick-fil-A</div>
+        <div class="brand-logo">Bed Bath &amp; Beyond</div>
+        <div class="brand-logo serif">JW Marriott</div>
+        <div class="brand-logo">Daily Harvest</div>
+        <div class="brand-logo serif">Tazo</div>
+        <div class="brand-logo">Big Blanket Co</div>
+        <div class="brand-logo">Logitech</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GROWTH -->
+  <section class="growth-section">
+    <div class="container">
+      <div class="growth-grid">
+        <div class="growth-text reveal">
+          <div class="section-label">Why Us</div>
+          <h2 class="section-heading">Don't hire marketers.<br />Partner with growth experts.</h2>
+          <p style="margin-top:1.5rem;">
+            Whether you need strategic planning or full organic and paid management,
+            we are here to help you elevate your brand and achieve your business goals.
+          </p>
+        </div>
+        <div class="growth-chart reveal reveal-delay-2">
+          <div class="chart-label">Avg. CTR per day &middot; Distribution</div>
+          <svg class="chart-svg" viewBox="0 0 500 200" fill="none">
+            <defs>
+              <linearGradient id="chartGrad" x1="0" y1="0" x2="500" y2="0">
+                <stop offset="0%" stop-color="#c8a2ff" />
+                <stop offset="100%" stop-color="#64ffda" />
+              </linearGradient>
+              <linearGradient id="areaGrad" x1="250" y1="0" x2="250" y2="200">
+                <stop offset="0%" stop-color="#c8a2ff" stop-opacity="0.2" />
+                <stop offset="100%" stop-color="#c8a2ff" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <path d="M0 140 C30 130, 60 120, 90 110 S150 60, 180 50 S240 80, 270 90 S330 70, 360 60 S420 80, 450 70 L500 75"
+                  stroke="url(#chartGrad)" stroke-width="2.5" fill="none" stroke-linecap="round" />
+            <path d="M0 140 C30 130, 60 120, 90 110 S150 60, 180 50 S240 80, 270 90 S330 70, 360 60 S420 80, 450 70 L500 75 V200 H0 Z"
+                  fill="url(#areaGrad)" />
+            <line x1="0" y1="50" x2="500" y2="50" stroke="rgba(255,255,255,0.04)" />
+            <line x1="0" y1="100" x2="500" y2="100" stroke="rgba(255,255,255,0.04)" />
+            <line x1="0" y1="150" x2="500" y2="150" stroke="rgba(255,255,255,0.04)" />
+            <text x="0" y="48" fill="rgba(255,255,255,0.25)" font-size="10" font-family="Inter">2.25%</text>
+            <text x="0" y="98" fill="rgba(255,255,255,0.25)" font-size="10" font-family="Inter">1.5%</text>
+            <text x="0" y="148" fill="rgba(255,255,255,0.25)" font-size="10" font-family="Inter">0.75%</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="stats-section">
+    <div class="container">
+      <div class="stats-header reveal">
+        <div class="section-label">Impact</div>
+        <h2 class="section-heading">Just some of the things<br />we did this year</h2>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card reveal">
+          <p>Created hundreds of social media posts with <span class="stat-highlight">millions</span> of views each.</p>
+        </div>
+        <div class="stat-card reveal reveal-delay-1">
+          <p>Organized and managed over <span class="stat-highlight">5,000</span> affiliates that skyrocketed sales.</p>
+        </div>
+        <div class="stat-card reveal reveal-delay-2">
+          <p>Crafted, sent, and grew email/SMS reach to over <span class="stat-highlight">6.5 million</span> subs.</p>
+        </div>
+        <div class="stat-card reveal">
+          <p>Got <span class="stat-highlight">29.1 million</span> likes on posts across platforms.</p>
+        </div>
+        <div class="stat-card reveal reveal-delay-1">
+          <p>Managed <span class="stat-highlight">$10 million</span> dollars in ad spend across several platforms.</p>
+        </div>
+        <div class="stat-card reveal reveal-delay-2">
+          <p>Built an elementary school's website, <span class="stat-highlight" style="text-decoration-color: var(--teal);">for free</span>. :)</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="services-section" id="contact">
+    <div class="container">
+      <div class="services-header reveal">
+        <div class="section-label">Capabilities</div>
+        <h2 class="section-heading">How can we help?</h2>
+      </div>
+      <div class="services-grid">
+        <a href="mailto:hi@thegracefulcompany.com" class="service-pill reveal">Paid Ads</a>
+        <a href="mailto:hi@thegracefulcompany.com" class="service-pill reveal reveal-delay-1">Content Creation</a>
+        <a href="mailto:hi@thegracefulcompany.com" class="service-pill reveal reveal-delay-2">Email &amp; SMS</a>
+        <a href="mailto:hi@thegracefulcompany.com" class="service-pill reveal reveal-delay-3">Organic Social</a>
+        <a href="mailto:hi@thegracefulcompany.com" class="service-pill reveal">Funnel Strategy</a>
+        <a href="mailto:hi@thegracefulcompany.com" class="service-pill reveal reveal-delay-1">Growth Hacking</a>
+        <a href="mailto:hi@thegracefulcompany.com" class="service-pill reveal reveal-delay-2">Website Development</a>
+        <a href="mailto:hi@thegracefulcompany.com" class="service-pill reveal reveal-delay-3">Content Creation</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-logo"><img src="assets/logo/graceful-w.png.webp" alt="graceful" style="height:48px; width:auto;" /></div>
+      <div class="footer-copy">&copy; 2026 The Graceful Company. All rights reserved.</div>
     </div>
   </footer>
+
+  <script>
+    // Nav scroll
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    reveals.forEach(el => observer.observe(el));
+
+    // Parallax glow on mouse
+    document.addEventListener('mousemove', (e) => {
+      const glows = document.querySelectorAll('.hero-glow');
+      const x = (e.clientX / window.innerWidth - 0.5) * 30;
+      const y = (e.clientY / window.innerHeight - 0.5) * 30;
+      glows.forEach((g, i) => {
+        const factor = i === 0 ? 1 : -1;
+        g.style.transform = `translate(${x * factor}px, ${y * factor}px)`;
+      });
+    });
+  </script>
+
 </body>
 </html>

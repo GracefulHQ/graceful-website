@@ -62,6 +62,12 @@
       color: var(--white);
     }
     .logo img { height: 64px; width: auto; display: block; }
+    .nav-links { display: flex; align-items: center; gap: 1.5rem; }
+    .nav-link {
+      font-size: 0.85rem; font-weight: 500; color: var(--text-muted);
+      transition: color 0.3s;
+    }
+    .nav-link:hover { color: var(--white); }
     .nav-cta {
       padding: 0.6rem 1.6rem; border-radius: 100px;
       background: var(--white); color: var(--bg);
@@ -559,7 +565,10 @@
   <nav id="navbar">
     <div class="container">
       <a href="#" class="logo"><img src="Logo/graceful-w.png.webp" alt="graceful" /></a>
-      <a href="mailto:hi@thegracefulcompany.com" class="nav-cta">Get in Touch</a>
+      <div class="nav-links">
+        <a href="ask.html" class="nav-link">Ask AI</a>
+        <a href="mailto:hi@thegracefulcompany.com" class="nav-cta">Get in Touch</a>
+      </div>
     </div>
   </nav>
 

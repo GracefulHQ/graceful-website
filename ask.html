@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ask — Information at your fingertips | graceful</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" sizes="32x32" href="Logo/favicon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="Logo/apple-touch-icon.png" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #050505;
+      --bg-2: #0c0c0c;
+      --surface: #111113;
+      --surface-2: #1a1a1d;
+      --border: rgba(255,255,255,0.06);
+      --border-light: rgba(255,255,255,0.12);
+      --text: #f5f5f7;
+      --text-muted: #8e8e93;
+      --text-dim: #636366;
+      --white: #ffffff;
+      --accent: #c8a2ff;
+      --accent-2: #9d6eff;
+      --warm: #ffb86c;
+      --teal: #64ffda;
+    }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::selection { background: var(--accent-2); color: white; }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 860px; margin: 0 auto; padding: 0 clamp(1.5rem, 4vw, 3rem); }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      padding: 1.5rem 0;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    nav.scrolled {
+      padding: 0.8rem 0;
+      background: rgba(5, 5, 5, 0.75);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+    }
+    nav .nav-inner {
+      max-width: 1300px; margin: 0 auto;
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .logo img { height: 64px; width: auto; display: block; }
+    .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+    .nav-link {
+      font-size: 0.85rem; font-weight: 500; color: var(--text-muted);
+      transition: color 0.3s; cursor: pointer;
+      background: none; border: none; font-family: inherit;
+    }
+    .nav-link:hover { color: var(--white); }
+
+    /* ── HERO / SEARCH ── */
+    .ask-hero {
+      padding: clamp(9rem, 18vh, 12rem) 0 2rem;
+      position: relative;
+    }
+    .hero-glow {
+      position: fixed; width: 800px; height: 800px;
+      border-radius: 50%; filter: blur(150px); opacity: 0.07;
+      pointer-events: none; z-index: 0;
+    }
+    .hero-glow-1 { top: -300px; right: -200px; background: var(--accent); }
+    .hero-glow-2 { bottom: -300px; left: -200px; background: var(--teal); }
+
+    .ask-hero .container { position: relative; z-index: 1; text-align: center; }
+
+    .ask-badge {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      padding: 0.45rem 1.2rem; border-radius: 100px;
+      background: rgba(200, 162, 255, 0.08);
+      border: 1px solid rgba(200, 162, 255, 0.15);
+      font-size: 0.8rem; font-weight: 500; color: var(--accent);
+      margin-bottom: 2rem; letter-spacing: 0.02em;
+    }
+    .ask-badge .pulse-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--teal);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+
+    .ask-hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 6vw, 4.2rem);
+      font-weight: 900; line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+    .ask-hero h1 .grad {
+      background: linear-gradient(90deg, var(--accent), var(--teal));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .ask-sub {
+      color: var(--text-muted);
+      font-size: clamp(0.95rem, 2vw, 1.1rem);
+      max-width: 540px; margin: 0 auto 3rem;
+    }
+
+    /* ── SEARCH BAR ── */
+    .search-form {
+      display: flex; align-items: center; gap: 0.6rem;
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: 100px;
+      padding: 0.5rem 0.5rem 0.5rem 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      max-width: 680px; margin: 0 auto;
+    }
+    .search-form:focus-within {
+      border-color: rgba(200, 162, 255, 0.4);
+      box-shadow: 0 0 0 4px rgba(200, 162, 255, 0.08), 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .search-form .search-icon {
+      flex: none; width: 20px; height: 20px; color: var(--text-dim);
+    }
+    .search-form input {
+      flex: 1; min-width: 0;
+      background: transparent; border: none; outline: none;
+      color: var(--text); font-family: inherit;
+      font-size: 1rem; padding: 0.6rem 0;
+    }
+    .search-form input::placeholder { color: var(--text-dim); }
+    .search-btn {
+      flex: none;
+      padding: 0.7rem 1.6rem; border-radius: 100px;
+      background: var(--white); color: var(--bg);
+      font-weight: 600; font-size: 0.85rem; font-family: inherit;
+      border: none; cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .search-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,255,255,0.15); }
+    .search-btn:disabled { opacity: 0.5; cursor: default; }
+
+    /* ── STARTER CHIPS ── */
+    .starters {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 0.6rem; margin-top: 1.5rem;
+    }
+    .chip {
+      padding: 0.55rem 1.2rem;
+      border: 1px solid var(--border-light);
+      border-radius: 100px;
+      background: transparent;
+      font-size: 0.83rem; font-weight: 500; font-family: inherit;
+      color: var(--text-muted);
+      cursor: pointer; text-align: left;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .chip:hover {
+      color: var(--white);
+      background: rgba(200, 162, 255, 0.08);
+      border-color: rgba(200, 162, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* ── RESULTS ── */
+    .results { position: relative; z-index: 1; padding: 1rem 0 6rem; }
+    .qa-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: clamp(1.5rem, 4vw, 2.5rem);
+      margin-bottom: 1.5rem;
+      animation: rise 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .qa-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--teal));
+    }
+    @keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+    .qa-question {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.3rem, 3vw, 1.7rem);
+      font-weight: 700; line-height: 1.3;
+      margin-bottom: 1.2rem;
+    }
+    .qa-meta {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 0.6rem;
+    }
+
+    .qa-answer { color: var(--text); font-size: 0.98rem; }
+    .qa-answer p { margin-bottom: 1em; }
+    .qa-answer p:last-child { margin-bottom: 0; }
+    .qa-answer h1, .qa-answer h2, .qa-answer h3 {
+      font-family: 'Playfair Display', serif;
+      line-height: 1.3; margin: 1.4em 0 0.5em;
+    }
+    .qa-answer h1 { font-size: 1.4rem; }
+    .qa-answer h2 { font-size: 1.25rem; }
+    .qa-answer h3 { font-size: 1.1rem; }
+    .qa-answer ul, .qa-answer ol { margin: 0 0 1em 1.4em; }
+    .qa-answer li { margin-bottom: 0.35em; }
+    .qa-answer strong { color: var(--white); }
+    .qa-answer code {
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      font-size: 0.85em;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.12em 0.4em;
+    }
+    .qa-answer pre {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      overflow-x: auto;
+      margin-bottom: 1em;
+    }
+    .qa-answer pre code { background: none; border: none; padding: 0; }
+    .qa-answer blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 1rem; margin-bottom: 1em;
+      color: var(--text-muted); font-style: italic;
+    }
+
+    /* ── FOLLOW-UPS ── */
+    .followups { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .followups-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--teal);
+      margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .followups-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    .followup-btn {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      width: 100%;
+      padding: 0.85rem 1.2rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--text-muted);
+      font-family: inherit; font-size: 0.9rem; font-weight: 500;
+      text-align: left; cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .followup-btn .arrow { flex: none; transition: transform 0.3s; color: var(--text-dim); }
+    .followup-btn:hover {
+      color: var(--white);
+      border-color: rgba(100, 255, 218, 0.3);
+      background: rgba(100, 255, 218, 0.05);
+      transform: translateX(4px);
+    }
+    .followup-btn:hover .arrow { transform: translateX(3px); color: var(--teal); }
+
+    /* ── LOADING ── */
+    .thinking { display: flex; align-items: center; gap: 0.9rem; color: var(--text-muted); font-size: 0.95rem; }
+    .thinking .orb {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--teal));
+      animation: breathe 1.2s ease-in-out infinite;
+    }
+    @keyframes breathe { 0%, 100% { transform: scale(0.7); opacity: 0.5; } 50% { transform: scale(1.15); opacity: 1; } }
+
+    /* ── ERROR ── */
+    .qa-error {
+      color: var(--warm); font-size: 0.92rem;
+      background: rgba(255, 184, 108, 0.06);
+      border: 1px solid rgba(255, 184, 108, 0.2);
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+    }
+    .qa-error button {
+      background: none; border: none; color: var(--accent);
+      font-family: inherit; font-size: inherit; font-weight: 600;
+      cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+      padding: 0;
+    }
+
+    /* ── KEY MODAL ── */
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 2000;
+      background: rgba(5,5,5,0.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: 24px;
+      padding: 2.5rem;
+      max-width: 480px; width: 100%;
+      animation: rise 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .modal h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem; font-weight: 700; margin-bottom: 0.75rem;
+    }
+    .modal p { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem; }
+    .modal p a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+    .modal input {
+      width: 100%;
+      background: var(--bg-2);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 0.85rem 1.1rem;
+      color: var(--text); font-family: ui-monospace, Menlo, monospace; font-size: 0.85rem;
+      outline: none;
+      margin-bottom: 1.25rem;
+      transition: border-color 0.3s;
+    }
+    .modal input:focus { border-color: rgba(200, 162, 255, 0.4); }
+    .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
+    .btn-ghost {
+      padding: 0.7rem 1.4rem; border-radius: 100px;
+      background: transparent; color: var(--text-muted);
+      border: 1px solid var(--border-light);
+      font-family: inherit; font-weight: 600; font-size: 0.85rem;
+      cursor: pointer; transition: all 0.3s;
+    }
+    .btn-ghost:hover { color: var(--white); border-color: var(--text-dim); }
+    .btn-solid {
+      padding: 0.7rem 1.6rem; border-radius: 100px;
+      background: var(--white); color: var(--bg);
+      border: none; font-family: inherit; font-weight: 600; font-size: 0.85rem;
+      cursor: pointer; transition: all 0.3s;
+    }
+    .btn-solid:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,255,255,0.15); }
+    .modal .privacy-note {
+      font-size: 0.75rem; color: var(--text-dim); margin: 1.25rem 0 0;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 3rem 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      position: relative; z-index: 1;
+    }
+    .footer-copy { font-size: 0.8rem; color: var(--text-dim); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .logo img { height: 48px; }
+      .ask-hero { padding-top: 7.5rem; }
+      .search-form { padding-left: 1.1rem; }
+      .search-btn { padding: 0.6rem 1.1rem; font-size: 0.8rem; }
+      .modal { padding: 1.8rem; }
+    }
+    @media (max-width: 480px) {
+      nav { padding: 1rem 0; }
+      .logo img { height: 40px; }
+      .starters { gap: 0.5rem; }
+      .chip { font-size: 0.78rem; padding: 0.5rem 1rem; }
+    }
+
+    /* ── NOISE TEXTURE ── */
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: 0.4;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="hero-glow hero-glow-2"></div>
+
+  <!-- NAV -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="logo"><img src="Logo/graceful-w.png.webp" alt="graceful" /></a>
+      <div class="nav-right">
+        <button class="nav-link" id="settingsBtn" title="API key settings">Settings</button>
+        <a href="index.html" class="nav-link">&larr; Back to site</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO + SEARCH -->
+  <section class="ask-hero">
+    <div class="container">
+      <div class="ask-badge">
+        <span class="pulse-dot"></span>
+        Powered by AI
+      </div>
+      <h1>Information at your <span class="grad">fingertips</span></h1>
+      <p class="ask-sub">Ask anything. Get a clear answer, then follow the threads it suggests to build a deeper understanding.</p>
+
+      <form class="search-form" id="searchForm">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Ask anything&hellip;" autocomplete="off" autofocus />
+        <button type="submit" class="search-btn" id="searchBtn">Ask</button>
+      </form>
+
+      <div class="starters" id="starters">
+        <button class="chip" data-q="Why is the sky blue?">Why is the sky blue?</button>
+        <button class="chip" data-q="How does compound interest work?">How does compound interest work?</button>
+        <button class="chip" data-q="What makes content go viral?">What makes content go viral?</button>
+        <button class="chip" data-q="How do black holes form?">How do black holes form?</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="results">
+    <div class="container" id="resultsContainer"></div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-copy">&copy; 2026 The Graceful Company. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <!-- API KEY MODAL -->
+  <div class="modal-backdrop" id="keyModal">
+    <div class="modal">
+      <h2>Connect your AI</h2>
+      <p>
+        This page talks to Claude directly from your browser. Paste an
+        <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Anthropic API key</a>
+        to enable answers.
+      </p>
+      <input type="password" id="keyInput" placeholder="sk-ant-..." autocomplete="off" />
+      <div class="modal-actions">
+        <button class="btn-ghost" id="keyCancel">Cancel</button>
+        <button class="btn-solid" id="keySave">Save</button>
+      </div>
+      <p class="privacy-note">
+        Your key is stored only in this browser (localStorage) and is sent only to api.anthropic.com. It never touches our servers.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // ── State ──
+    const KEY_STORAGE = 'graceful_anthropic_key';
+    const MODEL = 'claude-sonnet-5';
+    const FOLLOWUP_DELIM = '###FOLLOWUPS###';
+    let history = [];        // [{role, content}] for conversational depth
+    let busy = false;
+    let pendingQuestion = null; // question waiting on API key entry
+
+    // ── Elements ──
+    const form = document.getElementById('searchForm');
+    const input = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const results = document.getElementById('resultsContainer');
+    const starters = document.getElementById('starters');
+    const keyModal = document.getElementById('keyModal');
+    const keyInput = document.getElementById('keyInput');
+
+    // ── Nav scroll ──
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    // ── API key modal ──
+    function openKeyModal() {
+      keyInput.value = localStorage.getItem(KEY_STORAGE) || '';
+      keyModal.classList.add('open');
+      keyInput.focus();
+    }
+    function closeKeyModal() {
+      keyModal.classList.remove('open');
+    }
+    document.getElementById('settingsBtn').addEventListener('click', openKeyModal);
+    document.getElementById('keyCancel').addEventListener('click', () => {
+      pendingQuestion = null;
+      closeKeyModal();
+    });
+    document.getElementById('keySave').addEventListener('click', saveKey);
+    keyInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveKey(); });
+    keyModal.addEventListener('click', (e) => { if (e.target === keyModal) closeKeyModal(); });
+
+    function saveKey() {
+      const val = keyInput.value.trim();
+      if (val) localStorage.setItem(KEY_STORAGE, val);
+      else localStorage.removeItem(KEY_STORAGE);
+      closeKeyModal();
+      if (val && pendingQuestion) {
+        const q = pendingQuestion;
+        pendingQuestion = null;
+        ask(q);
+      }
+    }
+
+    // ── Search flow ──
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const q = input.value.trim();
+      if (q) ask(q);
+    });
+
+    starters.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (chip) ask(chip.dataset.q);
+    });
+
+    async function ask(question) {
+      if (busy) return;
+
+      const key = localStorage.getItem(KEY_STORAGE);
+      if (!key) {
+        pendingQuestion = question;
+        openKeyModal();
+        return;
+      }
+
+      busy = true;
+      searchBtn.disabled = true;
+      input.value = '';
+      starters.style.display = 'none';
+
+      const card = document.createElement('div');
+      card.className = 'qa-card';
+      card.innerHTML =
+        '<div class="qa-meta">You asked</div>' +
+        '<div class="qa-question"></div>' +
+        '<div class="qa-body"><div class="thinking"><span class="orb"></span>Thinking&hellip;</div></div>';
+      card.querySelector('.qa-question').textContent = question;
+      results.prepend(card);
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      const body = card.querySelector('.qa-body');
+
+      try {
+        const raw = await callClaude(question, key);
+        const { answer, followups } = parseResponse(raw);
+
+        history.push({ role: 'user', content: question });
+        history.push({ role: 'assistant', content: raw });
+        if (history.length > 12) history = history.slice(-12); // keep last 6 exchanges
+
+        body.innerHTML = '<div class="qa-meta" style="color: var(--teal);">Answer</div>' +
+                         '<div class="qa-answer">' + renderMarkdown(answer) + '</div>';
+
+        if (followups.length) {
+          const fu = document.createElement('div');
+          fu.className = 'followups';
+          fu.innerHTML = '<div class="followups-label">Go deeper</div><div class="followups-list"></div>';
+          const list = fu.querySelector('.followups-list');
+          followups.forEach(q => {
+            const btn = document.createElement('button');
+            btn.className = 'followup-btn';
+            const span = document.createElement('span');
+            span.textContent = q;
+            btn.appendChild(span);
+            btn.insertAdjacentHTML('beforeend',
+              '<svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>');
+            btn.addEventListener('click', () => ask(q));
+            list.appendChild(btn);
+          });
+          body.appendChild(fu);
+        }
+      } catch (err) {
+        const div = document.createElement('div');
+        div.className = 'qa-error';
+        if (err.status === 401) {
+          div.innerHTML = 'That API key was rejected. ';
+          const fix = document.createElement('button');
+          fix.textContent = 'Update key';
+          fix.addEventListener('click', () => { pendingQuestion = question; openKeyModal(); });
+          div.appendChild(fix);
+        } else {
+          div.textContent = 'Something went wrong: ' + (err.message || 'unknown error') + '. Please try again.';
+        }
+        body.innerHTML = '';
+        body.appendChild(div);
+      } finally {
+        busy = false;
+        searchBtn.disabled = false;
+        input.focus();
+      }
+    }
+
+    // ── Claude API ──
+    async function callClaude(question, key) {
+      const system =
+        'You are the answer engine for "graceful", a site whose motto is "information at your fingertips". ' +
+        'Answer the user\'s question clearly and accurately in 2-4 short paragraphs (or a short list when it fits), using simple markdown. ' +
+        'Write for a curious general reader. ' +
+        'Then, on a new line, output exactly this delimiter: ' + FOLLOWUP_DELIM + ' ' +
+        'followed by a JSON array of 3 to 4 short follow-up questions (strings) that would deepen the user\'s understanding of the topic — ' +
+        'each one specific, distinct, and phrased as a natural next question. Output nothing after the JSON array.';
+
+      const messages = history.concat([{ role: 'user', content: question }]);
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          max_tokens: 1500,
+          system: system,
+          messages: messages
+        })
+      });
+
+      if (!res.ok) {
+        let msg = 'API error (' + res.status + ')';
+        try {
+          const errBody = await res.json();
+          if (errBody.error && errBody.error.message) msg = errBody.error.message;
+        } catch (_) { /* keep default message */ }
+        const err = new Error(msg);
+        err.status = res.status;
+        throw err;
+      }
+
+      const data = await res.json();
+      return (data.content || [])
+        .filter(b => b.type === 'text')
+        .map(b => b.text)
+        .join('');
+    }
+
+    function parseResponse(raw) {
+      let answer = raw;
+      let followups = [];
+      const idx = raw.indexOf(FOLLOWUP_DELIM);
+      if (idx !== -1) {
+        answer = raw.slice(0, idx).trim();
+        const tail = raw.slice(idx + FOLLOWUP_DELIM.length);
+        const start = tail.indexOf('[');
+        const end = tail.lastIndexOf(']');
+        if (start !== -1 && end > start) {
+          try {
+            const arr = JSON.parse(tail.slice(start, end + 1));
+            if (Array.isArray(arr)) {
+              followups = arr.filter(x => typeof x === 'string' && x.trim()).slice(0, 4);
+            }
+          } catch (_) { /* no followups if JSON is malformed */ }
+        }
+      }
+      return { answer: answer.trim(), followups };
+    }
+
+    // ── Minimal markdown renderer (escapes HTML first) ──
+    function escapeHtml(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function inlineMd(s) {
+      return s
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+    }
+
+    function renderMarkdown(md) {
+      const lines = escapeHtml(md).split('\n');
+      let html = '';
+      let inCode = false, inUl = false, inOl = false, para = [];
+
+      function flushPara() {
+        if (para.length) { html += '<p>' + inlineMd(para.join(' ')) + '</p>'; para = []; }
+      }
+      function closeLists() {
+        if (inUl) { html += '</ul>'; inUl = false; }
+        if (inOl) { html += '</ol>'; inOl = false; }
+      }
+
+      for (const line of lines) {
+        if (line.trim().startsWith('```')) {
+          flushPara(); closeLists();
+          html += inCode ? '</code></pre>' : '<pre><code>';
+          inCode = !inCode;
+          continue;
+        }
+        if (inCode) { html += line + '\n'; continue; }
+
+        const h = line.match(/^(#{1,3})\s+(.*)/);
+        const ul = line.match(/^\s*[-*]\s+(.*)/);
+        const ol = line.match(/^\s*\d+[.)]\s+(.*)/);
+        const bq = line.match(/^>\s?(.*)/);
+
+        if (h) {
+          flushPara(); closeLists();
+          const level = h[1].length;
+          html += '<h' + level + '>' + inlineMd(h[2]) + '</h' + level + '>';
+        } else if (ul) {
+          flushPara();
+          if (inOl) { html += '</ol>'; inOl = false; }
+          if (!inUl) { html += '<ul>'; inUl = true; }
+          html += '<li>' + inlineMd(ul[1]) + '</li>';
+        } else if (ol) {
+          flushPara();
+          if (inUl) { html += '</ul>'; inUl = false; }
+          if (!inOl) { html += '<ol>'; inOl = true; }
+          html += '<li>' + inlineMd(ol[1]) + '</li>';
+        } else if (bq) {
+          flushPara(); closeLists();
+          html += '<blockquote>' + inlineMd(bq[1]) + '</blockquote>';
+        } else if (line.trim() === '') {
+          flushPara(); closeLists();
+        } else {
+          para.push(line.trim());
+        }
+      }
+      flushPara(); closeLists();
+      if (inCode) html += '</code></pre>';
+      return html;
+    }
+  </script>
+
+</body>
+</html>

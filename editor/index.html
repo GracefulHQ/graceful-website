@@ -108,6 +108,20 @@
     .privacy-note { margin-top: 1.6rem; color: var(--text-dim); font-size: 0.8rem; }
     .privacy-note b { color: var(--text-muted); }
 
+    /* ── CUT BAR ── */
+    .cut-card {
+      display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap;
+      background: linear-gradient(135deg, rgba(157,110,255,0.10), rgba(100,255,218,0.05));
+      border: 1px solid rgba(200,162,255,0.25);
+      border-radius: 16px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.2rem;
+    }
+    #cutBtn { font-size: 1rem; padding: 0.85rem 2.2rem; flex: none; }
+    .cut-status { font-size: 0.86rem; color: var(--text-muted); line-height: 1.5; flex: 1; min-width: 220px; }
+    .cut-status b { color: var(--text); }
+    .cut-status .ok { color: var(--teal); font-weight: 700; }
+
     /* ── PLAYER ── */
     #editorUI { display: none; }
     #editorUI.on { display: block; }
@@ -434,6 +448,10 @@
 
   <!-- EDITOR -->
   <section id="editorUI">
+    <div class="cut-card">
+      <button class="btn accent" id="cutBtn">✂&nbsp; Cut video</button>
+      <div class="cut-status" id="cutStatus">Press <b>Cut</b> to remove pauses and failed takes and stitch everything into one flowing video.</div>
+    </div>
     <div class="player-card">
       <div id="stage">
         <div id="stageHint"><div id="bigPlay">▶</div></div>
@@ -479,8 +497,7 @@
         <input type="range" class="mini" id="sSim" min="0.55" max="0.9" step="0.01" value="0.72" />
         <output id="oSim">72%</output>
       </div>
-      <button class="btn small" id="redetectBtn">Re-detect cuts</button>
-      <span class="settings-note">Re-detecting applies these settings to every clip and resets any manual trims. Striped regions are cut — <b style="color:var(--text-muted)">dark</b> = pauses, <b style="color:var(--warm)">amber</b> = failed takes (when you restart the same line, the earlier attempt is cut). Click any cut to restore it, drag segment edges to trim, click a segment and hit ✕ (or Delete) to cut it.</span>
+      <span class="settings-note">Settings apply the next time you press ✂ Cut (re-cutting resets manual edits). Striped regions are cut — <b style="color:var(--text-muted)">dark</b> = pauses, <b style="color:var(--warm)">amber</b> = failed takes (when you restart the same line, the earlier attempt is cut). Click any cut to restore it, drag segment edges to trim, click a segment and hit ✕ (or Delete) to cut it.</span>
     </div>
 
     <div class="clips-header">
@@ -532,6 +549,18 @@
   </div>
 </div>
 
+<!-- CUT PROGRESS MODAL -->
+<div class="modal" id="cutModal" hidden>
+  <div class="sheet">
+    <h3>Cutting your video</h3>
+    <div class="prog-wrap">
+      <div class="prog-bar"><div class="prog-fill" id="cutFill"></div></div>
+      <div class="prog-label"><span id="cutStep">Analyzing…</span><span id="cutPct">0%</span></div>
+    </div>
+    <p class="note">Listening for pauses and failed takes — this usually takes a few seconds per clip.</p>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <input type="file" id="fileInput" accept="video/*,.mp4,.mov,.m4v,.webm,.mkv" multiple hidden />
 
@@ -549,6 +578,7 @@ const state = {
   playing: false,
   t: 0,                // playhead position in composed (output) time
   exporting: false,
+  cutting: false,
 };
 const settings = { thresholdDb: -42, minPause: 0.5, pad: 0.15, retakeOn: true, retakeSim: 0.72 };
 let uid = 0;
@@ -694,8 +724,10 @@ async function loadClip(clip) {
       clip.thumb = grabThumb(clip.video);
       await seekTo(clip.video, 0);
     } catch (e) { /* thumb is optional */ }
+    // loaded but uncut: playable in full until the user presses ✂ Cut
+    clip.segments = clip.duration ? [{ start: 0, end: clip.duration }] : [];
+    clip.status = 'loaded';
     refresh();
-    await analyzeClip(clip);
   } catch (e) {
     clip.status = 'error';
     refresh();
@@ -712,24 +744,50 @@ function grabThumb(v) {
   try { return c.toDataURL('image/jpeg', 0.6); } catch (e) { return null; }
 }
 
-async function analyzeClip(clip) {
-  clip.status = 'analyzing';
-  refresh();
+/* Decode a video file's audio to 16 kHz mono. Primary path decodes straight
+ * into a 16 kHz OfflineAudioContext; some browsers (notably Safari with
+ * mp4/mov containers) reject that, so the fallback decodes at native rate
+ * through a regular AudioContext and we resample by hand. */
+let decodeCtx = null;
+async function decodeTo16kMono(file) {
+  const buf = await file.arrayBuffer();
   try {
-    const buf = await clip.file.arrayBuffer();
-    const rate = 16000;
-    const octx = new OfflineAudioContext(1, rate, rate);
-    const ab = await octx.decodeAudioData(buf);
+    const octx = new OfflineAudioContext(1, 16000, 16000);
+    const ab = await octx.decodeAudioData(buf.slice(0)); // copy — decode detaches the buffer
+    return mixdownResample(ab, 16000);
+  } catch (e) { /* fall through to native-rate decode */ }
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!decodeCtx) decodeCtx = actx || new AC();
+  const ab = await new Promise((res, rej) => {
+    const p = decodeCtx.decodeAudioData(buf, res, rej); // callback form for older Safari
+    if (p && p.catch) p.catch(rej);
+  });
+  return mixdownResample(ab, 16000);
+}
 
-    // mono mixdown at 16 kHz — used for both loudness and retake fingerprints
-    const mono = new Float32Array(ab.length);
-    for (let c = 0; c < ab.numberOfChannels; c++) {
-      const ch = ab.getChannelData(c);
-      for (let i = 0; i < ch.length; i++) mono[i] += ch[i] / ab.numberOfChannels;
-    }
+function mixdownResample(ab, target) {
+  const chs = [];
+  for (let c = 0; c < ab.numberOfChannels; c++) chs.push(ab.getChannelData(c));
+  const ratio = ab.sampleRate / target;
+  const outLen = Math.max(1, Math.floor(ab.length / ratio));
+  const out = new Float32Array(outLen);
+  for (let i = 0; i < outLen; i++) {
+    const pos = i * ratio, i0 = Math.floor(pos), fr = pos - i0;
+    const i1 = Math.min(ab.length - 1, i0 + 1);
+    let s = 0;
+    for (const ch of chs) s += ch[i0] * (1 - fr) + ch[i1] * fr;
+    out[i] = s / chs.length;
+  }
+  return out;
+}
 
-    const hop = 0.02;
-    const win = Math.round(hop * ab.sampleRate);
+async function ensureAnalyzed(clip, onProg) {
+  if (clip.mel || clip.analyzeFailed) return;
+  try {
+    const mono = await decodeTo16kMono(clip.file);
+    if (onProg) onProg(0.35);
+    const rate = 16000, hop = 0.02;
+    const win = Math.round(hop * rate);
     const n = Math.max(1, Math.floor(mono.length / win));
     const db = new Float32Array(n);
     for (let i = 0; i < n; i++) {
@@ -742,23 +800,77 @@ async function analyzeClip(clip) {
     clip.hop = hop;
     if (!isFinite(clip.duration) || clip.duration <= 0) clip.duration = n * hop;
 
-    const mel = await computeMel(mono, ab.sampleRate);
+    const mel = await computeMel(mono, rate, f => onProg && onProg(0.35 + 0.65 * f));
     clip.mel = mel.feats;
     clip.melN = mel.nMel;
     clip.melHop = mel.hopSec;
-
-    clip.segments = detectSegments(clip);
-    applyRetakes(clip);
-    clip.status = 'ready';
   } catch (e) {
     console.warn('Audio analysis failed for', clip.name, e);
     clip.db = null;
     clip.mel = null;
-    clip.retakes = [];
-    clip.segments = clip.duration ? [{ start: 0, end: clip.duration }] : [];
-    clip.status = 'noaudio';
+    clip.analyzeFailed = true;
   }
+}
+
+async function cutAll() {
+  if (state.cutting || state.exporting || !state.clips.length) return;
+  stopPlayback();
+  ensureAudio();
+  if (actx.state === 'suspended') actx.resume();
+  state.cutting = true;
+  state.sel = null;
+  $('#cutModal').hidden = false;
   refresh();
+
+  const clips = state.clips.filter(c => c.status !== 'error' && c.status !== 'loading');
+  const N = Math.max(1, clips.length);
+  let done = 0;
+  const setProg = (frac, label) => {
+    const p = Math.min(100, Math.round((done + frac) / N * 100));
+    $('#cutFill').style.width = p + '%';
+    $('#cutPct').textContent = p + '%';
+    $('#cutStep').textContent = label;
+  };
+
+  const problems = [];
+  for (const clip of clips) {
+    const label = 'Clip ' + (state.clips.indexOf(clip) + 1) + ' of ' + state.clips.length + ' — ' + clip.name;
+    setProg(0, label);
+    if (!clip.mel && !clip.analyzeFailed) {
+      clip.status = 'analyzing';
+      refresh();
+      await ensureAnalyzed(clip, f => setProg(f, label));
+    }
+    if (clip.db) {
+      clip.segments = detectSegments(clip);
+      applyRetakes(clip);
+      clip.status = 'ready';
+    } else {
+      clip.segments = clip.duration ? [{ start: 0, end: clip.duration }] : [];
+      clip.retakes = [];
+      clip.status = 'noaudio';
+      problems.push(clip.name);
+    }
+    done++;
+    setProg(0, label);
+  }
+
+  state.cutting = false;
+  state.t = 0;
+  $('#cutModal').hidden = true;
+
+  const pauses = state.clips.reduce((a, c) => a + Math.max(0, gapsOf(c).length - (c.retakes || []).length), 0);
+  const takes = state.clips.reduce((a, c) => a + (c.retakes || []).length, 0);
+  const saved = Math.max(0, rawDur() - totalDur());
+  let msg = '<span class="ok">✂ Done!</span> Cut ' + pauses + (pauses === 1 ? ' pause' : ' pauses');
+  if (takes) msg += ' and ' + takes + (takes === 1 ? ' failed take' : ' failed takes');
+  msg += ' — saved ' + fmtS(saved) + ' (' + fmt(rawDur()) + ' → ' + fmt(totalDur()) + ').';
+  if (!pauses && !takes) msg = '<span class="ok">✂ Done.</span> No pauses or failed takes found — try raising Sensitivity in the settings below, then press Re-cut.';
+  if (problems.length) msg += ' <span style="color:var(--warm)">⚠ Couldn\'t read the audio in ' + problems.join(', ') + ' — left uncut.</span>';
+  $('#cutStatus').innerHTML = msg;
+  $('#cutBtn').innerHTML = '✂&nbsp; Re-cut';
+  refresh();
+  player.play(); // show the optimized cut right away
 }
 
 /* ── retake detection ──
@@ -811,7 +923,7 @@ const FFT = (() => {
   return { transform };
 })();
 
-async function computeMel(mono, sr) {
+async function computeMel(mono, sr, onProg) {
   const nFft = 512, hop = 256, nMel = 20;
   const nFrames = Math.max(0, Math.floor((mono.length - nFft) / hop) + 1);
   const feats = new Float32Array(nFrames * nMel);
@@ -829,7 +941,10 @@ async function computeMel(mono, sr) {
   const re = new Float32Array(nFft), im = new Float32Array(nFft);
   const mag = new Float32Array(nFft / 2 + 1);
   for (let f = 0; f < nFrames; f++) {
-    if ((f & 2047) === 2047) await new Promise(r => setTimeout(r)); // keep UI alive
+    if ((f & 2047) === 2047) {
+      if (onProg) onProg(f / nFrames);
+      await new Promise(r => setTimeout(r)); // keep UI alive
+    }
     const off = f * hop;
     for (let i = 0; i < nFft; i++) { re[i] = mono[off + i] * win[i]; im[i] = 0; }
     FFT.transform(re, im);
@@ -1162,7 +1277,12 @@ function refresh() {
   const has = state.clips.length > 0;
   $('#emptyState').style.display = has ? 'none' : '';
   $('#editorUI').classList.toggle('on', has);
-  $('#exportBtn').disabled = !has || totalDur() <= 0.01 || state.exporting;
+  $('#exportBtn').disabled = !has || totalDur() <= 0.01 || state.exporting || state.cutting;
+  $('#cutBtn').disabled = !has || state.exporting || state.cutting;
+  if (has && !state.cutting && !state.clips.some(c => c.status === 'ready' || c.status === 'noaudio')) {
+    const n = state.clips.length;
+    $('#cutStatus').innerHTML = n + (n === 1 ? ' clip' : ' clips') + ' loaded. Press <b>✂ Cut video</b> to remove pauses and failed takes and stitch everything into one flowing video.';
+  }
 
   if (state.sel && (!clipById(state.sel.clipId) || !clipById(state.sel.clipId).segments[state.sel.si]))
     state.sel = null;
@@ -1236,6 +1356,7 @@ function makeClipRow(clip, idx) {
   meta.className = 'clip-meta';
   if (clip.status === 'loading') meta.textContent = 'loading…';
   else if (clip.status === 'error') meta.innerHTML = '<span class="warn">⚠ format not supported — remove this clip</span>';
+  else if (clip.status === 'loaded') meta.textContent = fmt(clip.duration) + ' · not cut yet';
   else if (clip.status === 'analyzing') meta.textContent = fmt(clip.duration) + ' · detecting pauses…';
   else {
     const retakes = (clip.retakes || []).length;
@@ -1677,22 +1798,7 @@ $('#sRetake').addEventListener('change', e => {
 });
 bindSlider('#sSim', '#oSim', 'retakeSim', v => Math.round(v * 100) + '%');
 
-$('#redetectBtn').addEventListener('click', () => {
-  const analyzed = state.clips.filter(c => c.db);
-  if (!analyzed.length) return;
-  stopPlayback();
-  let retakeCount = 0;
-  for (const c of analyzed) {
-    c.segments = detectSegments(c);
-    applyRetakes(c);
-    retakeCount += (c.retakes || []).length;
-  }
-  state.sel = null;
-  state.t = 0;
-  refresh();
-  toast('Re-detected on ' + analyzed.length + (analyzed.length === 1 ? ' clip' : ' clips')
-    + (retakeCount ? ' — cut ' + retakeCount + (retakeCount === 1 ? ' failed take' : ' failed takes') : ''));
-});
+$('#cutBtn').addEventListener('click', cutAll);
 
 /* ═══════════════ WIRING ═══════════════ */
 
@@ -1743,7 +1849,7 @@ $('#closeDoneBtn').addEventListener('click', () => { $('#exportModal').hidden = 
 document.addEventListener('keydown', e => {
   const tag = (e.target.tagName || '').toLowerCase();
   if (['input', 'select', 'textarea', 'button'].includes(tag)) return;
-  if (state.exporting) return;
+  if (state.exporting || state.cutting) return;
   if (e.code === 'Space') {
     e.preventDefault();
     state.playing ? player.pause() : player.play();
@@ -1773,7 +1879,7 @@ window.addEventListener('beforeunload', e => {
 refresh();
 
 /* exposed for debugging & tests */
-window.gracefulEditor = { state, settings, addFiles, detectSegments, applyRetakes, openingSimilarity, openingMotion, totalDur, rawDur, locate, player };
+window.gracefulEditor = { state, settings, addFiles, cutAll, detectSegments, applyRetakes, openingSimilarity, openingMotion, totalDur, rawDur, locate, player };
 </script>
 </body>
 </html>

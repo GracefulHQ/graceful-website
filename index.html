@@ -70,6 +70,16 @@
       border: none; cursor: pointer;
     }
     .nav-cta:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,255,255,0.15); }
+    .nav-links { display: flex; align-items: center; gap: 1.6rem; }
+    .nav-link {
+      font-size: 0.88rem; font-weight: 500; color: var(--text-muted);
+      transition: color 0.3s;
+    }
+    .nav-link em {
+      font-family: 'DM Serif Display', serif; font-style: normal;
+      color: var(--accent); font-size: 1.05em;
+    }
+    .nav-link:hover { color: var(--text); }
 
     /* ── HERO ── */
     .hero {
@@ -423,6 +433,8 @@
       /* Nav */
       .logo img { height: 48px; }
       .nav-cta { padding: 0.5rem 1.2rem; font-size: 0.8rem; }
+      .nav-links { gap: 1rem; }
+      .nav-link { font-size: 0.8rem; }
 
       /* Hero */
       .hero { padding: 6rem 0 3rem; }
@@ -472,6 +484,8 @@
       nav.scrolled { padding: 0.6rem 0; }
       .logo img { height: 40px; }
       .nav-cta { padding: 0.45rem 1rem; font-size: 0.75rem; }
+      .nav-links { gap: 0.8rem; }
+      .nav-link { font-size: 0.75rem; }
 
       /* ── HERO ── */
       .hero {
@@ -559,7 +573,10 @@
   <nav id="navbar">
     <div class="container">
       <a href="#" class="logo"><img src="Logo/graceful-w.png.webp" alt="graceful" /></a>
-      <a href="mailto:hi@thegracefulcompany.com" class="nav-cta">Get in Touch</a>
+      <div class="nav-links">
+        <a href="editor/" class="nav-link">graceful <em>cut</em></a>
+        <a href="mailto:hi@thegracefulcompany.com" class="nav-cta">Get in Touch</a>
+      </div>
     </div>
   </nav>
 

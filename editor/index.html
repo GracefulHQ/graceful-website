@@ -557,7 +557,8 @@
       <div class="prog-bar"><div class="prog-fill" id="cutFill"></div></div>
       <div class="prog-label"><span id="cutStep">Analyzing…</span><span id="cutPct">0%</span></div>
     </div>
-    <p class="note">Listening for pauses and failed takes — this usually takes a few seconds per clip.</p>
+    <p class="note">Listening for pauses and failed takes — usually a few seconds per clip. Some phone videos need a fast silent listen-through instead (about half the clip's length); the bar keeps moving while that runs.</p>
+    <button class="btn accent" id="cutTapBtn" hidden style="width:100%">Tap to continue</button>
   </div>
 </div>
 
@@ -752,7 +753,9 @@ let decodeCtx = null;
 async function decodeTo16kMono(file) {
   const buf = await file.arrayBuffer();
   try {
-    const octx = new OfflineAudioContext(1, 16000, 16000);
+    // 44.1 kHz is universally accepted by OfflineAudioContext (16 kHz isn't on
+    // some iOS versions); we resample down ourselves afterwards
+    const octx = new OfflineAudioContext(1, 44100, 44100);
     const ab = await octx.decodeAudioData(buf.slice(0)); // copy — decode detaches the buffer
     return mixdownResample(ab, 16000);
   } catch (e) { /* fall through to native-rate decode */ }
@@ -765,27 +768,123 @@ async function decodeTo16kMono(file) {
   return mixdownResample(ab, 16000);
 }
 
-function mixdownResample(ab, target) {
-  const chs = [];
-  for (let c = 0; c < ab.numberOfChannels; c++) chs.push(ab.getChannelData(c));
-  const ratio = ab.sampleRate / target;
-  const outLen = Math.max(1, Math.floor(ab.length / ratio));
+function resampleLinear(samples, fromRate, toRate) {
+  const ratio = fromRate / toRate;
+  const outLen = Math.max(1, Math.floor(samples.length / ratio));
   const out = new Float32Array(outLen);
   for (let i = 0; i < outLen; i++) {
     const pos = i * ratio, i0 = Math.floor(pos), fr = pos - i0;
-    const i1 = Math.min(ab.length - 1, i0 + 1);
-    let s = 0;
-    for (const ch of chs) s += ch[i0] * (1 - fr) + ch[i1] * fr;
-    out[i] = s / chs.length;
+    const i1 = Math.min(samples.length - 1, i0 + 1);
+    out[i] = samples[i0] * (1 - fr) + samples[i1] * fr;
   }
   return out;
 }
 
+function mixdownResample(ab, target) {
+  const mono = new Float32Array(ab.length);
+  for (let c = 0; c < ab.numberOfChannels; c++) {
+    const ch = ab.getChannelData(c);
+    for (let i = 0; i < ch.length; i++) mono[i] += ch[i] / ab.numberOfChannels;
+  }
+  return resampleLinear(mono, ab.sampleRate, target);
+}
+
+/* Last-resort audio reader: if the browser can PLAY the file (it can — it's
+ * sitting in the player), we tap the samples off a silent 2× playback through
+ * the WebAudio graph. Works for any playable format, including iPhone .MOV
+ * files whose audio Safari refuses to decode directly. */
+async function captureAudioRealtime(clip, onProg) {
+  ensureAudio();
+  if (actx.state === 'suspended') await actx.resume();
+  if (!clip.srcNode) throw new Error('no audio node');
+  const v = clip.video;
+  const SPEED = 2; // Safari mutes audio above 2×, so 2× is the ceiling
+  const R = actx.sampleRate;
+  const chunks = [];
+  const sp = actx.createScriptProcessor(4096, 2, 1);
+  const sink = actx.createGain();
+  sink.gain.value = 0; // ScriptProcessor only runs when routed to the destination
+  clip.srcNode.connect(sp);
+  sp.connect(sink);
+  sink.connect(actx.destination);
+  const prevMon = clip.monGain ? clip.monGain.gain.value : 1;
+  if (clip.monGain) clip.monGain.gain.value = 0; // silent pass
+  sp.onaudioprocess = e => {
+    const ib = e.inputBuffer;
+    const c0 = ib.getChannelData(0);
+    const c1 = ib.numberOfChannels > 1 ? ib.getChannelData(1) : c0;
+    const out = new Float32Array(ib.length);
+    for (let i = 0; i < ib.length; i++) out[i] = (c0[i] + c1[i]) / 2;
+    chunks.push(out);
+    if (onProg && v.duration) onProg(Math.min(1, v.currentTime / v.duration));
+  };
+  try {
+    v.pause();
+    await seekTo(v, 0);
+    v.playbackRate = SPEED;
+    if ('preservesPitch' in v) v.preservesPitch = true;
+    await playForCapture(v);
+    await new Promise(res => {
+      const to = setTimeout(res, ((v.duration || 600) / SPEED + 20) * 1000);
+      v.addEventListener('ended', () => { clearTimeout(to); res(); }, { once: true });
+    });
+  } finally {
+    v.pause();
+    v.playbackRate = 1;
+    sp.onaudioprocess = null;
+    try { clip.srcNode.disconnect(sp); } catch (e) {}
+    try { sp.disconnect(); sink.disconnect(); } catch (e) {}
+    if (clip.monGain) clip.monGain.gain.value = prevMon;
+    try { await seekTo(v, 0); } catch (e) {}
+  }
+  let len = 0;
+  for (const c of chunks) len += c.length;
+  const mono = new Float32Array(len);
+  let o = 0;
+  for (const c of chunks) { mono.set(c, o); o += c.length; }
+  // Keep the audio time-compressed (stretching the waveform would shift
+  // every frequency down); the caller scales the feature TIME AXIS by
+  // timeScale instead, so spectra stay true and timestamps stay in media time.
+  return { mono: resampleLinear(mono, R, 16000), timeScale: SPEED };
+}
+
+// iOS drops "user activation" after long async gaps, which blocks play().
+// When that happens, surface a tap target inside the progress modal.
+async function playForCapture(v) {
+  try { await v.play(); return; } catch (e) { /* need a fresh gesture */ }
+  const btn = $('#cutTapBtn');
+  btn.hidden = false;
+  await new Promise(res => btn.addEventListener('click', res, { once: true }));
+  btn.hidden = true;
+  await v.play();
+}
+
 async function ensureAnalyzed(clip, onProg) {
   if (clip.mel || clip.analyzeFailed) return;
+  let mono = null, timeScale = 1, base = 0.35;
   try {
-    const mono = await decodeTo16kMono(clip.file);
-    if (onProg) onProg(0.35);
+    mono = await decodeTo16kMono(clip.file);
+    if (onProg) onProg(base);
+  } catch (e) {
+    console.warn('Direct audio decode failed for', clip.name, '— trying playback capture', e);
+  }
+  if (!mono || mono.length < 3200) {
+    try {
+      const cap = await captureAudioRealtime(clip, f => onProg && onProg(f * 0.85));
+      mono = cap.mono;
+      timeScale = cap.timeScale;
+      base = 0.85;
+    } catch (e) {
+      console.warn('Playback audio capture failed for', clip.name, e);
+    }
+  }
+  if (!mono || mono.length < 3200 / timeScale) {
+    clip.db = null;
+    clip.mel = null;
+    clip.analyzeFailed = true;
+    return;
+  }
+  try {
     const rate = 16000, hop = 0.02;
     const win = Math.round(hop * rate);
     const n = Math.max(1, Math.floor(mono.length / win));
@@ -797,13 +896,13 @@ async function ensureAnalyzed(clip, onProg) {
       db[i] = 20 * Math.log10(Math.sqrt(sum / (s1 - s0)) + 1e-7);
     }
     clip.db = db;
-    clip.hop = hop;
-    if (!isFinite(clip.duration) || clip.duration <= 0) clip.duration = n * hop;
+    clip.hop = hop * timeScale; // captured audio is time-compressed; hops map back to media time
+    if (!isFinite(clip.duration) || clip.duration <= 0) clip.duration = n * clip.hop;
 
-    const mel = await computeMel(mono, rate, f => onProg && onProg(0.35 + 0.65 * f));
+    const mel = await computeMel(mono, rate, f => onProg && onProg(base + (1 - base) * f));
     clip.mel = mel.feats;
     clip.melN = mel.nMel;
-    clip.melHop = mel.hopSec;
+    clip.melHop = mel.hopSec * timeScale;
   } catch (e) {
     console.warn('Audio analysis failed for', clip.name, e);
     clip.db = null;
@@ -836,7 +935,8 @@ async function cutAll() {
   for (const clip of clips) {
     const label = 'Clip ' + (state.clips.indexOf(clip) + 1) + ' of ' + state.clips.length + ' — ' + clip.name;
     setProg(0, label);
-    if (!clip.mel && !clip.analyzeFailed) {
+    if (!clip.mel) {
+      clip.analyzeFailed = false; // every press of Cut earns a fresh attempt
       clip.status = 'analyzing';
       refresh();
       await ensureAnalyzed(clip, f => setProg(f, label));

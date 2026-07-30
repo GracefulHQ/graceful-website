@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#050505" />
+  <meta name="robots" content="noindex, nofollow" />
   <title>graceful cut — automatic pause removal &amp; clip stitching</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" sizes="32x32" href="../Logo/favicon.png" />
@@ -205,6 +206,13 @@
     }
     input[type="range"].mini::-moz-range-thumb { width: 13px; height: 13px; border-radius: 50%; background: var(--accent); border: none; }
     .settings-note { font-size: 0.72rem; color: var(--text-dim); flex-basis: 100%; }
+    .settings-divider { width: 1px; height: 22px; background: var(--border-light); }
+    .check-group {
+      display: flex; align-items: center; gap: 0.45rem; cursor: pointer;
+      font-size: 0.78rem; color: var(--text-muted); white-space: nowrap;
+    }
+    .check-group input { accent-color: var(--accent-2); width: 15px; height: 15px; cursor: pointer; }
+    #simGroup.off { opacity: 0.35; pointer-events: none; }
 
     /* ── CLIPS ── */
     .clips-header { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 0.4rem; }
@@ -323,6 +331,13 @@
       color: var(--danger); font-size: 0.8rem; opacity: 0; transition: opacity 0.15s;
     }
     .gap:hover::after { opacity: 1; }
+    .gap.retake {
+      background-image: repeating-linear-gradient(135deg, rgba(255,184,108,0.22) 0 5px, transparent 5px 11px);
+      border-left: 1px solid rgba(255,184,108,0.4);
+      border-right: 1px solid rgba(255,184,108,0.4);
+    }
+    .gap.retake:hover { background-color: rgba(255,184,108,0.14); }
+    .gap.retake::after { color: var(--warm); }
 
     .playhead {
       position: absolute; top: 0; bottom: 0; width: 2px;
@@ -412,7 +427,7 @@
     <div class="dropzone" id="dropzone">
       <div class="dz-icon">🎬</div>
       <div class="dz-title">Drop video clips here, or click to browse</div>
-      <div class="dz-sub">MP4 · MOV · WebM — add as many clips as you like</div>
+      <div class="dz-sub">MP4 · MOV · WebM — a single clip or a whole batch</div>
     </div>
     <p class="privacy-note"><b>100% private.</b> Your videos never leave your device — all processing happens locally in your browser.</p>
   </section>
@@ -454,8 +469,18 @@
         <input type="range" class="mini" id="sPad" min="0" max="0.5" step="0.01" value="0.15" />
         <output id="oPad">0.15s</output>
       </div>
-      <button class="btn small" id="redetectBtn">Re-detect pauses</button>
-      <span class="settings-note">Re-detecting applies these settings to every clip and resets any manual trims. Striped regions are cut; click one to restore it. Drag segment edges to trim, click a segment and hit ✕ (or Delete) to cut it.</span>
+      <span class="settings-divider"></span>
+      <label class="check-group" for="sRetake">
+        <input type="checkbox" id="sRetake" checked />
+        <span>Cut failed takes</span>
+      </label>
+      <div class="slider-group" id="simGroup">
+        <label for="sSim">Match strictness</label>
+        <input type="range" class="mini" id="sSim" min="0.55" max="0.9" step="0.01" value="0.72" />
+        <output id="oSim">72%</output>
+      </div>
+      <button class="btn small" id="redetectBtn">Re-detect cuts</button>
+      <span class="settings-note">Re-detecting applies these settings to every clip and resets any manual trims. Striped regions are cut — <b style="color:var(--text-muted)">dark</b> = pauses, <b style="color:var(--warm)">amber</b> = failed takes (when you restart the same line, the earlier attempt is cut). Click any cut to restore it, drag segment edges to trim, click a segment and hit ✕ (or Delete) to cut it.</span>
     </div>
 
     <div class="clips-header">
@@ -525,7 +550,7 @@ const state = {
   t: 0,                // playhead position in composed (output) time
   exporting: false,
 };
-const settings = { thresholdDb: -42, minPause: 0.5, pad: 0.15 };
+const settings = { thresholdDb: -42, minPause: 0.5, pad: 0.15, retakeOn: true, retakeSim: 0.72 };
 let uid = 0;
 let insertIndex = null;      // where the next picked files get inserted (null = end)
 let actx = null, streamDest = null;
@@ -638,6 +663,7 @@ function makeClip(file) {
     name: file.name.replace(/\.[^.]+$/, ''),
     duration: 0, segments: [], status: 'loading',
     db: null, hop: 0.02, thumb: null,
+    mel: null, melN: 0, melHop: 0, retakes: [],
     srcNode: null, monGain: null,
   };
 }
@@ -694,31 +720,249 @@ async function analyzeClip(clip) {
     const rate = 16000;
     const octx = new OfflineAudioContext(1, rate, rate);
     const ab = await octx.decodeAudioData(buf);
+
+    // mono mixdown at 16 kHz — used for both loudness and retake fingerprints
+    const mono = new Float32Array(ab.length);
+    for (let c = 0; c < ab.numberOfChannels; c++) {
+      const ch = ab.getChannelData(c);
+      for (let i = 0; i < ch.length; i++) mono[i] += ch[i] / ab.numberOfChannels;
+    }
+
     const hop = 0.02;
     const win = Math.round(hop * ab.sampleRate);
-    const n = Math.max(1, Math.floor(ab.length / win));
+    const n = Math.max(1, Math.floor(mono.length / win));
     const db = new Float32Array(n);
-    const chans = [];
-    for (let c = 0; c < ab.numberOfChannels; c++) chans.push(ab.getChannelData(c));
     for (let i = 0; i < n; i++) {
       let sum = 0;
-      const s0 = i * win, s1 = Math.min(ab.length, s0 + win);
-      for (const ch of chans) for (let j = s0; j < s1; j++) { const x = ch[j]; sum += x * x; }
-      const rms = Math.sqrt(sum / ((s1 - s0) * chans.length));
-      db[i] = 20 * Math.log10(rms + 1e-7);
+      const s0 = i * win, s1 = Math.min(mono.length, s0 + win);
+      for (let j = s0; j < s1; j++) { const x = mono[j]; sum += x * x; }
+      db[i] = 20 * Math.log10(Math.sqrt(sum / (s1 - s0)) + 1e-7);
     }
     clip.db = db;
     clip.hop = hop;
     if (!isFinite(clip.duration) || clip.duration <= 0) clip.duration = n * hop;
+
+    const mel = await computeMel(mono, ab.sampleRate);
+    clip.mel = mel.feats;
+    clip.melN = mel.nMel;
+    clip.melHop = mel.hopSec;
+
     clip.segments = detectSegments(clip);
+    applyRetakes(clip);
     clip.status = 'ready';
   } catch (e) {
     console.warn('Audio analysis failed for', clip.name, e);
     clip.db = null;
+    clip.mel = null;
+    clip.retakes = [];
     clip.segments = clip.duration ? [{ start: 0, end: clip.duration }] : [];
     clip.status = 'noaudio';
   }
   refresh();
+}
+
+/* ── retake detection ──
+ * A failed take is re-recorded speech: the speaker pauses, then restarts the
+ * same line. So we fingerprint the opening of every speech segment
+ * (mel-spectrogram frames) and compare consecutive segments with DTW.
+ * If segment N+1 opens like segment N did, N was the failed attempt — cut it.
+ */
+
+const FFT = (() => {
+  const cache = {};
+  function tables(n) {
+    if (cache[n]) return cache[n];
+    const cos = new Float32Array(n / 2), sin = new Float32Array(n / 2);
+    for (let i = 0; i < n / 2; i++) {
+      cos[i] = Math.cos(-2 * Math.PI * i / n);
+      sin[i] = Math.sin(-2 * Math.PI * i / n);
+    }
+    const rev = new Uint32Array(n);
+    for (let i = 0; i < n; i++) {
+      let r = 0, x = i;
+      for (let b = 1; b < n; b <<= 1) { r = (r << 1) | (x & 1); x >>= 1; }
+      rev[i] = r;
+    }
+    return cache[n] = { cos, sin, rev };
+  }
+  function transform(re, im) {
+    const n = re.length;
+    const { cos, sin, rev } = tables(n);
+    for (let i = 0; i < n; i++) {
+      const j = rev[i];
+      if (j > i) {
+        let t = re[i]; re[i] = re[j]; re[j] = t;
+        t = im[i]; im[i] = im[j]; im[j] = t;
+      }
+    }
+    for (let size = 2; size <= n; size <<= 1) {
+      const half = size >> 1, step = n / size;
+      for (let i = 0; i < n; i += size) {
+        for (let j = i, k = 0; j < i + half; j++, k += step) {
+          const l = j + half;
+          const tre = re[l] * cos[k] - im[l] * sin[k];
+          const tim = re[l] * sin[k] + im[l] * cos[k];
+          re[l] = re[j] - tre; im[l] = im[j] - tim;
+          re[j] += tre; im[j] += tim;
+        }
+      }
+    }
+  }
+  return { transform };
+})();
+
+async function computeMel(mono, sr) {
+  const nFft = 512, hop = 256, nMel = 20;
+  const nFrames = Math.max(0, Math.floor((mono.length - nFft) / hop) + 1);
+  const feats = new Float32Array(nFrames * nMel);
+  const win = new Float32Array(nFft);
+  for (let i = 0; i < nFft; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (nFft - 1));
+
+  // triangular mel filterbank, 80 Hz – 7.6 kHz
+  const melF = f => 2595 * Math.log10(1 + f / 700);
+  const imelF = m => 700 * (Math.pow(10, m / 2595) - 1);
+  const m0 = melF(80), m1 = melF(Math.min(7600, sr / 2));
+  const bins = [];
+  for (let i = 0; i < nMel + 2; i++)
+    bins.push(Math.min(nFft / 2, Math.max(1, Math.round(nFft * imelF(m0 + (m1 - m0) * i / (nMel + 1)) / sr))));
+
+  const re = new Float32Array(nFft), im = new Float32Array(nFft);
+  const mag = new Float32Array(nFft / 2 + 1);
+  for (let f = 0; f < nFrames; f++) {
+    if ((f & 2047) === 2047) await new Promise(r => setTimeout(r)); // keep UI alive
+    const off = f * hop;
+    for (let i = 0; i < nFft; i++) { re[i] = mono[off + i] * win[i]; im[i] = 0; }
+    FFT.transform(re, im);
+    for (let i = 0; i <= nFft / 2; i++) mag[i] = re[i] * re[i] + im[i] * im[i];
+    const row = f * nMel;
+    for (let b = 0; b < nMel; b++) {
+      const lo = bins[b], mid = bins[b + 1], hi = bins[b + 2];
+      let e = 0;
+      for (let i = lo; i < mid; i++) e += mag[i] * ((i - lo) / Math.max(1, mid - lo));
+      for (let i = mid; i < hi; i++) e += mag[i] * ((hi - i) / Math.max(1, hi - mid));
+      feats[row + b] = Math.log(e + 1e-9);
+    }
+    // per-frame normalize (mean-subtract kills loudness, L2 makes dot = cosine)
+    let mean = 0;
+    for (let b = 0; b < nMel; b++) mean += feats[row + b];
+    mean /= nMel;
+    let norm = 0;
+    for (let b = 0; b < nMel; b++) { feats[row + b] -= mean; norm += feats[row + b] * feats[row + b]; }
+    norm = Math.sqrt(norm) || 1;
+    for (let b = 0; b < nMel; b++) feats[row + b] /= norm;
+  }
+
+  // final vector per frame = [static | delta], whole vector L2-normalized.
+  // The delta keeps its natural magnitude: steady sound compares on spectrum
+  // alone, transitions compare on trajectory too — different sentences move
+  // differently even when they momentarily share frequencies.
+  const D = nMel * 2, W = 1.5;
+  const out = new Float32Array(nFrames * D);
+  for (let f = 0; f < nFrames; f++) {
+    const row = f * nMel, orow = f * D;
+    let norm = 0;
+    for (let b = 0; b < nMel; b++) {
+      out[orow + b] = feats[row + b];
+      norm += out[orow + b] * out[orow + b];
+    }
+    if (f > 0 && f < nFrames - 1) {
+      for (let b = 0; b < nMel; b++) {
+        const d = (feats[row + nMel + b] - feats[row - nMel + b]) * W;
+        out[orow + nMel + b] = d;
+        norm += d * d;
+      }
+    }
+    norm = Math.sqrt(norm) || 1;
+    for (let b = 0; b < D; b++) out[orow + b] /= norm;
+  }
+  return { feats: out, nMel: D, hopSec: hop / sr };
+}
+
+// Average cosine similarity along the best DTW alignment of two segment openings.
+function openingSimilarity(clip, a, b) {
+  if (!clip.mel) return 0;
+  const N = clip.melN, hop = clip.melHop;
+  const total = Math.floor(clip.mel.length / N);
+  const maxWin = 3.0, minWin = 0.7;
+  const fa0 = Math.max(0, Math.floor(a.start / hop));
+  const fa1 = Math.min(total, Math.floor(Math.min(a.end, a.start + maxWin) / hop));
+  const fb0 = Math.max(0, Math.floor(b.start / hop));
+  const fb1 = Math.min(total, Math.floor(Math.min(b.end, b.start + maxWin) / hop));
+  const na = fa1 - fa0, nb = fb1 - fb0;
+  if (na < minWin / hop || nb < minWin / hop) return 0;
+
+  const mel = clip.mel;
+  const cost = (i, j) => {
+    let d = 0;
+    const ra = (fa0 + i) * N, rb = (fb0 + j) * N;
+    for (let k = 0; k < N; k++) d += mel[ra + k] * mel[rb + k];
+    return 1 - d; // cosine distance
+  };
+  const INF = 1e18;
+  const D = new Float64Array(na * nb).fill(INF), S = new Float64Array(na * nb).fill(1);
+  // Sakoe-Chiba band: keep the warp path near the diagonal so wildly
+  // different content can't be stretched into a false match
+  const ratio = nb / na;
+  const band = Math.max(10, Math.round(0.2 * Math.max(na, nb)));
+  for (let i = 0; i < na; i++) {
+    for (let j = 0; j < nb; j++) {
+      if (Math.abs(j - i * ratio) > band) continue;
+      const c = cost(i, j);
+      const idx = i * nb + j;
+      if (i === 0 && j === 0) { D[idx] = c; S[idx] = 1; continue; }
+      let bd = INF, bs = 0;
+      if (i > 0 && j > 0 && D[idx - nb - 1] < bd) { bd = D[idx - nb - 1]; bs = S[idx - nb - 1]; }
+      if (i > 0 && D[idx - nb] < bd) { bd = D[idx - nb]; bs = S[idx - nb]; }
+      if (j > 0 && D[idx - 1] < bd) { bd = D[idx - 1]; bs = S[idx - 1]; }
+      if (bd >= INF) continue;
+      D[idx] = bd + c;
+      S[idx] = bs + 1;
+    }
+  }
+  const last = na * nb - 1;
+  if (D[last] >= INF) return 0;
+  return 1 - D[last] / S[last]; // avg cosine along path, in [-1, 1]
+}
+
+// How much the spectrum MOVES during a segment's opening (0 = frozen).
+// Speech always moves; a steady hum/beep/drone doesn't — and a frozen
+// spectrum can't be judged for retakes (any two hums "match").
+function openingMotion(clip, seg) {
+  if (!clip.mel) return 0;
+  const N = clip.melN, hop = clip.melHop, half = N / 2;
+  const total = Math.floor(clip.mel.length / N);
+  const f0 = Math.max(0, Math.floor(seg.start / hop));
+  const f1 = Math.min(total, Math.floor(Math.min(seg.end, seg.start + 3) / hop));
+  if (f1 <= f0) return 0;
+  let acc = 0;
+  for (let f = f0; f < f1; f++) {
+    let s = 0;
+    const row = f * N + half;
+    for (let k = 0; k < half; k++) s += clip.mel[row + k] * clip.mel[row + k];
+    acc += Math.sqrt(s);
+  }
+  return acc / (f1 - f0);
+}
+
+function applyRetakes(clip) {
+  clip.retakes = [];
+  if (!settings.retakeOn || !clip.mel) return;
+  // below this the opening is a steady drone (hum/beep), not speech — skip
+  // judgment entirely rather than risk cutting on a meaningless match
+  const MOTION_GATE = 0.11;
+  const segs = clip.segments;
+  let i = 0;
+  while (i < segs.length - 1) {
+    if (openingMotion(clip, segs[i]) < MOTION_GATE || openingMotion(clip, segs[i + 1]) < MOTION_GATE) { i++; continue; }
+    const sim = openingSimilarity(clip, segs[i], segs[i + 1]);
+    if (sim >= settings.retakeSim) {
+      // segs[i] is the failed attempt — the later take wins
+      clip.retakes.push({ start: segs[i].start, end: segs[i].end, sim });
+      segs.splice(i, 1);
+      // stay at i: if the survivor is itself a failed take of the next one
+      // (third attempts), the next pass catches it
+    } else i++;
+  }
 }
 
 function detectSegments(clip) {
@@ -776,6 +1020,7 @@ function restoreGap(clip, gap) {
   remaining.push({ start, end });
   remaining.sort((a, b) => a.start - b.start);
   clip.segments = remaining;
+  clip.retakes = (clip.retakes || []).filter(r => r.end <= gap.start + 0.02 || r.start >= gap.end - 0.02);
 }
 
 /* ═══════════════ AUDIO GRAPH ═══════════════ */
@@ -993,9 +1238,11 @@ function makeClipRow(clip, idx) {
   else if (clip.status === 'error') meta.innerHTML = '<span class="warn">⚠ format not supported — remove this clip</span>';
   else if (clip.status === 'analyzing') meta.textContent = fmt(clip.duration) + ' · detecting pauses…';
   else {
-    const pauses = gapsOf(clip).length;
+    const retakes = (clip.retakes || []).length;
+    const pauses = Math.max(0, gapsOf(clip).length - retakes);
     const saved = Math.max(0, clip.duration - keptDur(clip));
     let s = fmt(clip.duration) + ' · ' + pauses + (pauses === 1 ? ' pause cut' : ' pauses cut');
+    if (retakes) s += ' · <span class="warn">' + retakes + (retakes === 1 ? ' failed take cut' : ' failed takes cut') + '</span>';
     if (saved > 0.05) s += ' · <span class="saved">saved ' + fmtS(saved) + '</span>';
     if (clip.status === 'noaudio') s += ' · <span class="warn">no audio track — kept in full</span>';
     if (!clip.segments.length) s = fmt(clip.duration) + ' · <span class="warn">fully cut — click the strip to restore</span>';
@@ -1086,9 +1333,15 @@ function buildOverlays(clip, olay, strip) {
   for (const g of gapsOf(clip)) {
     const el = document.createElement('div');
     el.className = 'gap';
+    const rt = (clip.retakes || []).find(r => r.start >= g.start - 0.02 && r.end <= g.end + 0.02);
+    if (rt) {
+      el.classList.add('retake');
+      el.title = 'Failed take cut (' + Math.round(rt.sim * 100) + '% match with the next take) — click to restore';
+    } else {
+      el.title = 'Cut: ' + fmtS(g.end - g.start) + ' — click to restore';
+    }
     el.style.left = pct(g.start);
     el.style.width = pct(g.end - g.start);
-    el.title = 'Cut: ' + fmtS(g.end - g.start) + ' — click to restore';
     el.addEventListener('click', e => {
       e.stopPropagation();
       stopPlayback();
@@ -1418,15 +1671,27 @@ bindSlider('#sThresh', '#oThresh', 'thresholdDb', v => v + ' dB');
 bindSlider('#sMin', '#oMin', 'minPause', v => v.toFixed(2) + 's');
 bindSlider('#sPad', '#oPad', 'pad', v => v.toFixed(2) + 's');
 
+$('#sRetake').addEventListener('change', e => {
+  settings.retakeOn = e.target.checked;
+  $('#simGroup').classList.toggle('off', !settings.retakeOn);
+});
+bindSlider('#sSim', '#oSim', 'retakeSim', v => Math.round(v * 100) + '%');
+
 $('#redetectBtn').addEventListener('click', () => {
   const analyzed = state.clips.filter(c => c.db);
   if (!analyzed.length) return;
   stopPlayback();
-  for (const c of analyzed) c.segments = detectSegments(c);
+  let retakeCount = 0;
+  for (const c of analyzed) {
+    c.segments = detectSegments(c);
+    applyRetakes(c);
+    retakeCount += (c.retakes || []).length;
+  }
   state.sel = null;
   state.t = 0;
   refresh();
-  toast('Pauses re-detected on ' + analyzed.length + (analyzed.length === 1 ? ' clip' : ' clips'));
+  toast('Re-detected on ' + analyzed.length + (analyzed.length === 1 ? ' clip' : ' clips')
+    + (retakeCount ? ' — cut ' + retakeCount + (retakeCount === 1 ? ' failed take' : ' failed takes') : ''));
 });
 
 /* ═══════════════ WIRING ═══════════════ */
@@ -1508,7 +1773,7 @@ window.addEventListener('beforeunload', e => {
 refresh();
 
 /* exposed for debugging & tests */
-window.gracefulEditor = { state, settings, addFiles, detectSegments, totalDur, rawDur, locate, player };
+window.gracefulEditor = { state, settings, addFiles, detectSegments, applyRetakes, openingSimilarity, openingMotion, totalDur, rawDur, locate, player };
 </script>
 </body>
 </html>

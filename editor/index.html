@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050505" />
+  <title>graceful cut — automatic pause removal &amp; clip stitching</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../Logo/favicon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../Logo/apple-touch-icon.png" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #050505;
+      --bg-2: #0c0c0c;
+      --surface: #111113;
+      --surface-2: #1a1a1d;
+      --border: rgba(255,255,255,0.06);
+      --border-light: rgba(255,255,255,0.12);
+      --text: #f5f5f7;
+      --text-muted: #8e8e93;
+      --text-dim: #636366;
+      --white: #ffffff;
+      --accent: #c8a2ff;
+      --accent-2: #9d6eff;
+      --warm: #ffb86c;
+      --teal: #64ffda;
+      --danger: #ff6b6b;
+    }
+
+    html { font-size: 16px; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::selection { background: var(--accent-2); color: white; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
+    .container { max-width: 1180px; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem); }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      padding: 0.7rem 0;
+      background: rgba(5,5,5,0.8);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+    }
+    nav .container { display: flex; align-items: center; gap: 1rem; }
+    .logo { display: flex; align-items: baseline; gap: 0.5rem; }
+    .logo img { height: 44px; width: auto; display: block; align-self: center; }
+    .logo .app-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem; color: var(--accent); letter-spacing: 0.01em;
+    }
+    .nav-spacer { flex: 1; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      padding: 0.55rem 1.2rem; border-radius: 100px;
+      border: 1px solid var(--border-light);
+      background: var(--surface-2); color: var(--text);
+      font-weight: 600; font-size: 0.85rem;
+      transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+      white-space: nowrap;
+    }
+    .btn:hover { border-color: rgba(255,255,255,0.25); transform: translateY(-1px); }
+    .btn.primary { background: var(--white); color: var(--bg); border-color: transparent; }
+    .btn.primary:hover { box-shadow: 0 0 24px rgba(255,255,255,0.18); }
+    .btn.accent { background: linear-gradient(135deg, var(--accent-2), var(--accent)); color: #0a0a0a; border-color: transparent; }
+    .btn.accent:hover { box-shadow: 0 0 24px rgba(157,110,255,0.4); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn.small { padding: 0.35rem 0.85rem; font-size: 0.78rem; }
+    .btn.ghost { background: transparent; border-color: transparent; color: var(--text-muted); }
+    .btn.ghost:hover { color: var(--text); border-color: var(--border-light); }
+
+    main { padding: 1.6rem 0 5rem; }
+
+    /* ── EMPTY STATE ── */
+    #emptyState { text-align: center; padding: clamp(2rem, 8vh, 6rem) 0; }
+    #emptyState h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+      font-weight: 900; line-height: 1.1; letter-spacing: -0.02em;
+      margin-bottom: 1.1rem;
+    }
+    #emptyState h1 em { font-style: italic; color: var(--accent); }
+    #emptyState p.sub { color: var(--text-muted); max-width: 560px; margin: 0 auto 2.4rem; font-size: 1.02rem; }
+    .dropzone {
+      max-width: 720px; margin: 0 auto;
+      border: 2px dashed rgba(200,162,255,0.28);
+      border-radius: 22px;
+      padding: clamp(2.2rem, 6vw, 4rem) 1.5rem;
+      background: rgba(200,162,255,0.03);
+      transition: all 0.25s;
+      cursor: pointer;
+    }
+    .dropzone:hover, .dropzone.over { border-color: var(--accent); background: rgba(200,162,255,0.07); }
+    .dropzone .dz-icon { font-size: 2.2rem; margin-bottom: 0.8rem; }
+    .dropzone .dz-title { font-weight: 700; font-size: 1.05rem; margin-bottom: 0.35rem; }
+    .dropzone .dz-sub { color: var(--text-dim); font-size: 0.85rem; }
+    .privacy-note { margin-top: 1.6rem; color: var(--text-dim); font-size: 0.8rem; }
+    .privacy-note b { color: var(--text-muted); }
+
+    /* ── PLAYER ── */
+    #editorUI { display: none; }
+    #editorUI.on { display: block; }
+    .player-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 1.2rem;
+    }
+    #stage {
+      position: relative; width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      max-height: 62vh;
+    }
+    #stage video {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: contain; opacity: 0; pointer-events: none;
+    }
+    #stage video.on { opacity: 1; }
+    #stageHint {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 2;
+    }
+    #bigPlay {
+      width: 74px; height: 74px; border-radius: 50%;
+      background: rgba(10,10,10,0.55); border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; color: white;
+      transition: all 0.25s; pointer-events: none;
+    }
+    #stageHint:hover #bigPlay { transform: scale(1.07); background: rgba(157,110,255,0.5); }
+    #stageHint.hidden #bigPlay { opacity: 0; }
+
+    .transport { padding: 0.85rem 1rem 1rem; }
+    .transport-row { display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap; }
+    #playBtn {
+      width: 42px; height: 42px; border-radius: 50%; flex: none;
+      background: var(--white); color: var(--bg); border: none;
+      font-size: 1rem; display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s;
+    }
+    #playBtn:hover { transform: scale(1.06); }
+    .time-label { font-variant-numeric: tabular-nums; font-size: 0.85rem; color: var(--text-muted); min-width: 52px; }
+    .time-label.cur { color: var(--text); font-weight: 600; text-align: right; }
+    .seek-wrap { flex: 1; position: relative; height: 26px; min-width: 200px; display: flex; align-items: center; }
+    .seek-track {
+      position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+      height: 8px; border-radius: 6px;
+      background: var(--surface-2); overflow: hidden;
+    }
+    .seek-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: linear-gradient(90deg, var(--accent-2), var(--accent)); border-radius: 6px; }
+    #seek {
+      -webkit-appearance: none; appearance: none;
+      position: relative; width: 100%; background: transparent; height: 26px; margin: 0;
+      cursor: pointer; z-index: 2;
+    }
+    #seek::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%;
+      background: var(--white); border: 2px solid var(--accent-2);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.6);
+    }
+    #seek::-moz-range-thumb {
+      width: 13px; height: 13px; border-radius: 50%;
+      background: var(--white); border: 2px solid var(--accent-2);
+    }
+    .saved-chip {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.3rem 0.85rem; border-radius: 100px;
+      background: rgba(100,255,218,0.07); border: 1px solid rgba(100,255,218,0.18);
+      color: var(--teal); font-size: 0.78rem; font-weight: 600; white-space: nowrap;
+    }
+
+    /* ── SETTINGS ── */
+    .settings-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 0.9rem 1.1rem;
+      margin-bottom: 1.6rem;
+      display: flex; align-items: center; gap: 1.4rem; flex-wrap: wrap;
+    }
+    .settings-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
+    .slider-group { display: flex; align-items: center; gap: 0.6rem; }
+    .slider-group label { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
+    .slider-group output { font-size: 0.78rem; color: var(--text); font-weight: 600; min-width: 46px; font-variant-numeric: tabular-nums; }
+    input[type="range"].mini {
+      -webkit-appearance: none; appearance: none; width: 110px; height: 4px; border-radius: 4px;
+      background: var(--surface-2); outline: none; cursor: pointer;
+    }
+    input[type="range"].mini::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%;
+      background: var(--accent); border: none;
+    }
+    input[type="range"].mini::-moz-range-thumb { width: 13px; height: 13px; border-radius: 50%; background: var(--accent); border: none; }
+    .settings-note { font-size: 0.72rem; color: var(--text-dim); flex-basis: 100%; }
+
+    /* ── CLIPS ── */
+    .clips-header { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 0.4rem; }
+    .clips-header h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; }
+    .clips-header .hint { color: var(--text-dim); font-size: 0.8rem; }
+
+    .insert-zone { display: flex; justify-content: center; padding: 0.15rem 0; }
+    .insert-zone button {
+      border: 1px dashed rgba(255,255,255,0.14); background: transparent;
+      color: var(--text-dim); border-radius: 100px;
+      font-size: 0.72rem; font-weight: 600; padding: 0.22rem 0.9rem;
+      opacity: 0.55; transition: all 0.2s;
+    }
+    .insert-zone button:hover, .insert-zone.over button { opacity: 1; color: var(--accent); border-color: rgba(200,162,255,0.5); background: rgba(200,162,255,0.06); }
+
+    .clip-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 0.85rem 1rem 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .clip-row.drag-over-top { box-shadow: 0 -3px 0 0 var(--accent); }
+    .clip-row.drag-over-bottom { box-shadow: 0 3px 0 0 var(--accent); }
+    .clip-row.dragging { opacity: 0.45; }
+    .clip-head { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.7rem; }
+    .grab {
+      cursor: grab; color: var(--text-dim); font-size: 1rem; line-height: 1;
+      padding: 0.3rem 0.15rem; user-select: none; flex: none;
+    }
+    .grab:active { cursor: grabbing; }
+    .clip-thumb {
+      width: 58px; height: 36px; border-radius: 7px; object-fit: cover;
+      background: #000; border: 1px solid var(--border-light); flex: none;
+    }
+    .clip-info { min-width: 0; flex: 1; }
+    .clip-name { font-weight: 600; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .clip-meta { font-size: 0.74rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .clip-meta .saved { color: var(--teal); }
+    .clip-meta .warn { color: var(--warm); }
+    .clip-actions { display: flex; gap: 0.3rem; flex: none; }
+    .icon-btn {
+      width: 30px; height: 30px; border-radius: 8px;
+      border: 1px solid transparent; background: transparent;
+      color: var(--text-dim); font-size: 0.85rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .icon-btn:hover { color: var(--text); background: var(--surface-2); border-color: var(--border-light); }
+    .icon-btn.danger:hover { color: var(--danger); }
+    .icon-btn:disabled { opacity: 0.25; cursor: default; background: transparent; border-color: transparent; }
+
+    .strip {
+      position: relative; height: 64px;
+      border-radius: 10px; overflow: hidden;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      touch-action: none;
+    }
+    .strip canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .strip .olay { position: absolute; inset: 0; }
+    .strip .analyzing-note {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 0.78rem; color: var(--accent); gap: 0.5rem;
+      background: repeating-linear-gradient(100deg, transparent 0 18px, rgba(200,162,255,0.04) 18px 36px);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s linear infinite;
+    }
+    @keyframes shimmer { to { background-position: -72px 0; } }
+    .spinner {
+      width: 13px; height: 13px; border-radius: 50%;
+      border: 2px solid rgba(200,162,255,0.25); border-top-color: var(--accent);
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .seg {
+      position: absolute; top: 0; bottom: 0;
+      cursor: pointer;
+    }
+    .seg::after {
+      content: ''; position: absolute; inset: 0;
+      border-top: 2px solid rgba(100,255,218,0.45);
+      border-bottom: 2px solid rgba(100,255,218,0.45);
+      pointer-events: none;
+    }
+    .seg.sel { background: rgba(200,162,255,0.12); }
+    .seg.sel::after { border-color: var(--accent); }
+    .seg .h { position: absolute; top: 0; bottom: 0; width: 10px; cursor: ew-resize; z-index: 3; }
+    .seg .h::after {
+      content: ''; position: absolute; top: 18%; bottom: 18%; width: 3px;
+      border-radius: 3px; background: rgba(255,255,255,0.35);
+      opacity: 0; transition: opacity 0.15s;
+    }
+    .seg .h.l { left: -1px; } .seg .h.l::after { left: 2px; }
+    .seg .h.r { right: -1px; } .seg .h.r::after { right: 2px; }
+    .strip:hover .seg .h::after, .seg.sel .h::after { opacity: 1; }
+    .seg .kill {
+      position: absolute; top: 4px; right: 5px; z-index: 4;
+      width: 20px; height: 20px; border-radius: 6px;
+      background: rgba(255,107,107,0.9); color: #fff; border: none;
+      font-size: 0.72rem; line-height: 1; display: none;
+      align-items: center; justify-content: center;
+    }
+    .seg.sel .kill { display: flex; }
+
+    .gap {
+      position: absolute; top: 0; bottom: 0; cursor: pointer;
+      background: rgba(5,5,5,0.68);
+      background-image: repeating-linear-gradient(135deg, rgba(255,107,107,0.13) 0 5px, transparent 5px 11px);
+      transition: background-color 0.15s;
+    }
+    .gap:hover { background-color: rgba(255,107,107,0.14); }
+    .gap::after {
+      content: '↺'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      color: var(--danger); font-size: 0.8rem; opacity: 0; transition: opacity 0.15s;
+    }
+    .gap:hover::after { opacity: 1; }
+
+    .playhead {
+      position: absolute; top: 0; bottom: 0; width: 2px;
+      background: var(--white); z-index: 5; display: none;
+      box-shadow: 0 0 8px rgba(255,255,255,0.7);
+      pointer-events: none;
+    }
+
+    .add-end-wrap { margin-top: 1rem; display: flex; justify-content: center; }
+
+    /* ── MODAL ── */
+    .modal {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.2rem;
+    }
+    .modal[hidden] { display: none; }
+    .sheet {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      width: min(480px, 100%);
+      padding: 1.8rem;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    }
+    .sheet h3 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 1.1rem; }
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .field select {
+      width: 100%; padding: 0.65rem 0.8rem; border-radius: 10px;
+      background: var(--surface-2); color: var(--text);
+      border: 1px solid var(--border-light); font-family: inherit; font-size: 0.9rem;
+    }
+    .note { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 1.2rem; line-height: 1.55; }
+    .note b { color: var(--text-muted); }
+    .sheet .actions { display: flex; gap: 0.7rem; justify-content: flex-end; }
+    .prog-wrap { margin: 0.4rem 0 1.2rem; }
+    .prog-bar { height: 9px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
+    .prog-fill { height: 100%; width: 0%; border-radius: 6px; background: linear-gradient(90deg, var(--accent-2), var(--teal)); transition: width 0.3s linear; }
+    .prog-label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-top: 0.5rem; font-variant-numeric: tabular-nums; }
+    .done-box { text-align: center; padding: 0.6rem 0 1.2rem; }
+    .done-box .big { font-size: 2rem; margin-bottom: 0.5rem; }
+    .done-box p { color: var(--text-muted); font-size: 0.88rem; }
+    .done-box a { color: var(--teal); font-weight: 600; }
+
+    .toast {
+      position: fixed; bottom: 1.4rem; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--surface-2); border: 1px solid var(--border-light);
+      color: var(--text); font-size: 0.85rem; padding: 0.7rem 1.3rem;
+      border-radius: 100px; z-index: 600; opacity: 0;
+      transition: all 0.3s; pointer-events: none; white-space: nowrap;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+    .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 640px) {
+      .logo img { height: 34px; }
+      .settings-bar { gap: 0.8rem; }
+      .transport-row { gap: 0.6rem; }
+      .saved-chip { display: none; }
+      .clip-thumb { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a class="logo" href="../" title="Back to the graceful site">
+      <img src="../Logo/graceful-w.png.webp" alt="graceful" />
+      <span class="app-name">cut</span>
+    </a>
+    <div class="nav-spacer"></div>
+    <button class="btn" id="addClipsBtn">＋ Add clips</button>
+    <button class="btn accent" id="exportBtn" disabled>Export video</button>
+  </div>
+</nav>
+
+<main class="container">
+
+  <!-- EMPTY STATE -->
+  <section id="emptyState">
+    <h1>Cut the pauses.<br /><em>Keep the flow.</em></h1>
+    <p class="sub">Drop in your talking-head clips. We detect every pause, cut it out, and stitch everything into one perfectly flowing video — right here in your browser.</p>
+    <div class="dropzone" id="dropzone">
+      <div class="dz-icon">🎬</div>
+      <div class="dz-title">Drop video clips here, or click to browse</div>
+      <div class="dz-sub">MP4 · MOV · WebM — add as many clips as you like</div>
+    </div>
+    <p class="privacy-note"><b>100% private.</b> Your videos never leave your device — all processing happens locally in your browser.</p>
+  </section>
+
+  <!-- EDITOR -->
+  <section id="editorUI">
+    <div class="player-card">
+      <div id="stage">
+        <div id="stageHint"><div id="bigPlay">▶</div></div>
+      </div>
+      <div class="transport">
+        <div class="transport-row">
+          <button id="playBtn" title="Play / pause (space)">▶</button>
+          <span class="time-label cur" id="curTime">0:00</span>
+          <div class="seek-wrap">
+            <div class="seek-track" id="seekTrack"><div class="seek-fill" id="seekFill"></div></div>
+            <input type="range" id="seek" min="0" max="100" step="0.01" value="0" />
+          </div>
+          <span class="time-label" id="totTime">0:00</span>
+          <span class="saved-chip" id="savedChip">✂ saved 0:00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-bar">
+      <span class="settings-title">Pause detection</span>
+      <div class="slider-group">
+        <label for="sThresh">Sensitivity</label>
+        <input type="range" class="mini" id="sThresh" min="-60" max="-25" step="1" value="-42" />
+        <output id="oThresh">-42 dB</output>
+      </div>
+      <div class="slider-group">
+        <label for="sMin">Min pause</label>
+        <input type="range" class="mini" id="sMin" min="0.2" max="2" step="0.05" value="0.5" />
+        <output id="oMin">0.50s</output>
+      </div>
+      <div class="slider-group">
+        <label for="sPad">Breathing room</label>
+        <input type="range" class="mini" id="sPad" min="0" max="0.5" step="0.01" value="0.15" />
+        <output id="oPad">0.15s</output>
+      </div>
+      <button class="btn small" id="redetectBtn">Re-detect pauses</button>
+      <span class="settings-note">Re-detecting applies these settings to every clip and resets any manual trims. Striped regions are cut; click one to restore it. Drag segment edges to trim, click a segment and hit ✕ (or Delete) to cut it.</span>
+    </div>
+
+    <div class="clips-header">
+      <h2>Clips</h2>
+      <span class="hint">drag ⠿ to reorder · use ＋ zones to insert clips anywhere</span>
+    </div>
+    <div id="clipList"></div>
+    <div class="add-end-wrap">
+      <button class="btn" id="addEndBtn">＋ Add clips to the end</button>
+    </div>
+  </section>
+</main>
+
+<!-- EXPORT MODAL -->
+<div class="modal" id="exportModal" hidden>
+  <div class="sheet">
+    <h3>Export video</h3>
+    <div id="exportSetup">
+      <div class="field">
+        <label for="resSel">Resolution</label>
+        <select id="resSel"></select>
+      </div>
+      <p class="note">Rendering runs in <b>real time</b> — a 5-minute edit takes about 5 minutes. Keep this tab <b>open and visible</b> until it finishes. The file downloads automatically when done.</p>
+      <div class="actions">
+        <button class="btn ghost" id="cancelSetupBtn">Cancel</button>
+        <button class="btn accent" id="startExportBtn">Start export</button>
+      </div>
+    </div>
+    <div id="exportProgress" hidden>
+      <div class="prog-wrap">
+        <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+        <div class="prog-label"><span id="progPct">0%</span><span id="progEta">–</span></div>
+      </div>
+      <p class="note">Rendering… keep this tab visible. Audio is muted while exporting.</p>
+      <div class="actions">
+        <button class="btn ghost" id="cancelExportBtn">Cancel export</button>
+      </div>
+    </div>
+    <div id="exportDone" hidden>
+      <div class="done-box">
+        <div class="big">✅</div>
+        <p id="doneMsg">Your video has been downloaded.</p>
+        <p style="margin-top:0.5rem"><a id="redownload" download>Download again</a></p>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="closeDoneBtn">Done</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept="video/*,.mp4,.mov,.m4v,.webm,.mkv" multiple hidden />
+
+<script>
+'use strict';
+
+/* ═══════════════ STATE ═══════════════ */
+
+const $ = s => document.querySelector(s);
+const stage = $('#stage'), clipList = $('#clipList');
+
+const state = {
+  clips: [],           // ordered list of clip objects
+  sel: null,           // {clipId, si} selected kept segment
+  playing: false,
+  t: 0,                // playhead position in composed (output) time
+  exporting: false,
+};
+const settings = { thresholdDb: -42, minPause: 0.5, pad: 0.15 };
+let uid = 0;
+let insertIndex = null;      // where the next picked files get inserted (null = end)
+let actx = null, streamDest = null;
+let exportCancel = false;
+let lastBlobUrl = null;
+
+/* ═══════════════ UTILITIES ═══════════════ */
+
+function fmt(t) {
+  t = Math.max(0, t || 0);
+  const m = Math.floor(t / 60), s = Math.floor(t % 60);
+  return m + ':' + String(s).padStart(2, '0');
+}
+function fmtS(t) { return t >= 60 ? fmt(t) : (Math.round(t * 10) / 10) + 's'; }
+function segLen(s) { return s.end - s.start; }
+function keptDur(c) { return c.segments.reduce((a, s) => a + segLen(s), 0); }
+function totalDur() { return state.clips.reduce((a, c) => a + keptDur(c), 0); }
+function rawDur() { return state.clips.reduce((a, c) => a + (c.duration || 0), 0); }
+function clipById(id) { return state.clips.find(c => c.id === id); }
+
+function toast(msg) {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('on'), 2600);
+}
+
+function seekTo(v, t) {
+  return new Promise(res => {
+    t = Math.min(Math.max(t, 0), (v.duration || t));
+    if (Math.abs(v.currentTime - t) < 0.002 && v.readyState >= 2) return res();
+    let done = false;
+    const h = () => { if (done) return; done = true; v.removeEventListener('seeked', h); res(); };
+    v.addEventListener('seeked', h);
+    setTimeout(h, 3000); // safety net — never hang on a stuck seek
+    try { v.currentTime = t; } catch (e) { h(); }
+  });
+}
+
+/* ═══════════════ COMPOSED TIMELINE MATH ═══════════════ */
+
+// Composed time t → {ci, si, vt}: clip index, segment index, time within the clip.
+function locate(t) {
+  let rem = t;
+  for (let ci = 0; ci < state.clips.length; ci++) {
+    const c = state.clips[ci];
+    for (let si = 0; si < c.segments.length; si++) {
+      const L = segLen(c.segments[si]);
+      if (rem < L - 1e-6) return { ci, si, vt: c.segments[si].start + rem };
+      rem -= L;
+    }
+  }
+  for (let ci = state.clips.length - 1; ci >= 0; ci--) {
+    const c = state.clips[ci];
+    if (c.segments.length) {
+      const si = c.segments.length - 1;
+      return { ci, si, vt: c.segments[si].end };
+    }
+  }
+  return null;
+}
+
+function composedAt(ci, si, vt) {
+  let t = 0;
+  for (let i = 0; i < ci; i++) t += keptDur(state.clips[i]);
+  const c = state.clips[ci];
+  for (let j = 0; j < si; j++) t += segLen(c.segments[j]);
+  return t + (vt - c.segments[si].start);
+}
+
+function nextLoc(loc) {
+  const c = state.clips[loc.ci];
+  if (loc.si + 1 < c.segments.length)
+    return { ci: loc.ci, si: loc.si + 1, vt: c.segments[loc.si + 1].start };
+  for (let ci = loc.ci + 1; ci < state.clips.length; ci++) {
+    const k = state.clips[ci];
+    if (k.segments.length) return { ci, si: 0, vt: k.segments[0].start };
+  }
+  return null;
+}
+
+/* ═══════════════ CLIP LOADING & ANALYSIS ═══════════════ */
+
+async function addFiles(files, index) {
+  const arr = [...files].filter(f =>
+    (f.type && f.type.startsWith('video/')) || /\.(mp4|mov|m4v|webm|mkv)$/i.test(f.name));
+  if (!arr.length) { toast('No video files found in that selection'); return; }
+  stopPlayback();
+  for (const f of arr) {
+    const clip = makeClip(f);
+    if (index == null) state.clips.push(clip);
+    else state.clips.splice(index++, 0, clip);
+    loadClip(clip);
+  }
+  refresh();
+}
+
+function makeClip(file) {
+  const url = URL.createObjectURL(file);
+  const v = document.createElement('video');
+  v.src = url;
+  v.preload = 'auto';
+  v.playsInline = true;
+  v.setAttribute('playsinline', '');
+  v.muted = false;
+  stage.appendChild(v);
+  return {
+    id: ++uid, file, url, video: v,
+    name: file.name.replace(/\.[^.]+$/, ''),
+    duration: 0, segments: [], status: 'loading',
+    db: null, hop: 0.02, thumb: null,
+    srcNode: null, monGain: null,
+  };
+}
+
+async function loadClip(clip) {
+  try {
+    await new Promise((res, rej) => {
+      if (clip.video.readyState >= 1) return res();
+      clip.video.addEventListener('loadedmetadata', res, { once: true });
+      clip.video.addEventListener('error', () => rej(new Error('unsupported')), { once: true });
+    });
+    clip.duration = clip.video.duration;
+    if (!isFinite(clip.duration) || clip.duration <= 0) {
+      // MediaRecorder-produced files (screen/browser recordings) report Infinity
+      // until forced to seek to the end — standard workaround.
+      const v = clip.video;
+      await new Promise(res => {
+        const h = () => { if (isFinite(v.duration)) { v.removeEventListener('durationchange', h); res(); } };
+        v.addEventListener('durationchange', h);
+        setTimeout(res, 4000);
+        try { v.currentTime = 1e7; } catch (e) { res(); }
+      });
+      clip.duration = isFinite(v.duration) ? v.duration : 0;
+      await seekTo(v, 0);
+    }
+    try {
+      await seekTo(clip.video, Math.min(0.5, clip.duration / 2));
+      clip.thumb = grabThumb(clip.video);
+      await seekTo(clip.video, 0);
+    } catch (e) { /* thumb is optional */ }
+    refresh();
+    await analyzeClip(clip);
+  } catch (e) {
+    clip.status = 'error';
+    refresh();
+    toast(`Couldn't load “${clip.name}” — format not supported by this browser`);
+  }
+}
+
+function grabThumb(v) {
+  if (!v.videoWidth) return null;
+  const c = document.createElement('canvas');
+  const s = 116 / v.videoWidth;
+  c.width = 116; c.height = Math.max(1, Math.round(v.videoHeight * s));
+  c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+  try { return c.toDataURL('image/jpeg', 0.6); } catch (e) { return null; }
+}
+
+async function analyzeClip(clip) {
+  clip.status = 'analyzing';
+  refresh();
+  try {
+    const buf = await clip.file.arrayBuffer();
+    const rate = 16000;
+    const octx = new OfflineAudioContext(1, rate, rate);
+    const ab = await octx.decodeAudioData(buf);
+    const hop = 0.02;
+    const win = Math.round(hop * ab.sampleRate);
+    const n = Math.max(1, Math.floor(ab.length / win));
+    const db = new Float32Array(n);
+    const chans = [];
+    for (let c = 0; c < ab.numberOfChannels; c++) chans.push(ab.getChannelData(c));
+    for (let i = 0; i < n; i++) {
+      let sum = 0;
+      const s0 = i * win, s1 = Math.min(ab.length, s0 + win);
+      for (const ch of chans) for (let j = s0; j < s1; j++) { const x = ch[j]; sum += x * x; }
+      const rms = Math.sqrt(sum / ((s1 - s0) * chans.length));
+      db[i] = 20 * Math.log10(rms + 1e-7);
+    }
+    clip.db = db;
+    clip.hop = hop;
+    if (!isFinite(clip.duration) || clip.duration <= 0) clip.duration = n * hop;
+    clip.segments = detectSegments(clip);
+    clip.status = 'ready';
+  } catch (e) {
+    console.warn('Audio analysis failed for', clip.name, e);
+    clip.db = null;
+    clip.segments = clip.duration ? [{ start: 0, end: clip.duration }] : [];
+    clip.status = 'noaudio';
+  }
+  refresh();
+}
+
+function detectSegments(clip) {
+  const dur = clip.duration;
+  if (!clip.db || !dur) return dur ? [{ start: 0, end: dur }] : [];
+  const { thresholdDb, minPause, pad } = settings;
+  const db = clip.db, hop = clip.hop;
+  const removed = [];
+  let i = 0;
+  while (i < db.length) {
+    if (db[i] < thresholdDb) {
+      let j = i;
+      while (j < db.length && db[j] < thresholdDb) j++;
+      let t0 = i * hop, t1 = j * hop;
+      const atStart = i === 0, atEnd = j === db.length;
+      if (t1 - t0 >= minPause) {
+        if (!atStart) t0 += pad;      // keep a breath of silence around speech
+        if (atEnd) t1 = dur; else t1 -= pad;
+        t0 = Math.max(0, t0); t1 = Math.min(dur, t1);
+        if (t1 - t0 > 0.06) removed.push([t0, t1]);
+      }
+      i = j;
+    } else i++;
+  }
+  const kept = [];
+  let cur = 0;
+  for (const [a, b] of removed) {
+    if (a - cur >= 0.08) kept.push({ start: cur, end: a });
+    cur = Math.max(cur, b);
+  }
+  if (dur - cur >= 0.08) kept.push({ start: cur, end: dur });
+  return kept;
+}
+
+function gapsOf(clip) {
+  const g = [];
+  let cur = 0;
+  for (const s of clip.segments) {
+    if (s.start - cur > 0.01) g.push({ start: cur, end: s.start });
+    cur = s.end;
+  }
+  if (clip.duration - cur > 0.01) g.push({ start: cur, end: clip.duration });
+  return g;
+}
+
+function restoreGap(clip, gap) {
+  let start = gap.start, end = gap.end;
+  const remaining = [];
+  for (const s of clip.segments) {
+    if (Math.abs(s.end - gap.start) < 0.02 || Math.abs(s.start - gap.end) < 0.02) {
+      start = Math.min(start, s.start);
+      end = Math.max(end, s.end);
+    } else remaining.push(s);
+  }
+  remaining.push({ start, end });
+  remaining.sort((a, b) => a.start - b.start);
+  clip.segments = remaining;
+}
+
+/* ═══════════════ AUDIO GRAPH ═══════════════ */
+
+function ensureAudio() {
+  if (!actx) {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    streamDest = actx.createMediaStreamDestination();
+  }
+  for (const c of state.clips) {
+    if (!c.srcNode && c.status !== 'error') {
+      try {
+        c.srcNode = actx.createMediaElementSource(c.video);
+        c.monGain = actx.createGain();
+        c.srcNode.connect(c.monGain);
+        c.monGain.connect(actx.destination);
+        c.srcNode.connect(streamDest);
+      } catch (e) { /* already connected or no audio */ }
+    }
+  }
+}
+
+/* ═══════════════ PLAYBACK ENGINE ═══════════════ */
+
+const player = {
+  raf: 0,
+  token: 0,
+  wasPlaying: false,
+
+  setActive(loc) {
+    state.clips.forEach((c, i) => c.video.classList.toggle('on', i === loc.ci));
+  },
+
+  async show(loc) {           // display a paused frame at loc
+    if (!loc) return;
+    const tok = ++this.token;
+    const c = state.clips[loc.ci];
+    this.setActive(loc);
+    await seekTo(c.video, loc.vt);
+    if (tok !== this.token) return;
+    updateTransport();
+  },
+
+  async play() {
+    if (state.playing || state.exporting) return;
+    if (totalDur() <= 0.01) { toast('Nothing to play yet — everything is cut'); return; }
+    ensureAudio();
+    if (actx.state === 'suspended') actx.resume();
+    if (state.t >= totalDur() - 0.02) state.t = 0;
+    const loc = locate(state.t);
+    if (!loc) return;
+    state.playing = true;
+    updatePlayBtn();
+    this.startSeg(loc);
+  },
+
+  async startSeg(loc) {
+    const tok = ++this.token;
+    const c = state.clips[loc.ci];
+    this.setActive(loc);
+    await seekTo(c.video, loc.vt);
+    if (tok !== this.token || !state.playing) return;
+    try { await c.video.play(); } catch (e) { this.pause(); return; }
+    if (tok !== this.token || !state.playing) { c.video.pause(); return; }
+
+    const tick = () => {
+      if (tok !== this.token || !state.playing) return;
+      const seg = c.segments[loc.si];
+      if (!seg) { this.pause(); return; }
+      const vt = c.video.currentTime;
+      if (c.video.ended || vt >= seg.end - 0.015) {
+        c.video.pause();
+        const nxt = nextLoc(loc);
+        if (nxt) {
+          state.t = composedAt(nxt.ci, nxt.si, nxt.vt);
+          this.startSeg(nxt);
+        } else {
+          state.t = totalDur();
+          this.pause();
+          updateTransport();
+        }
+        return;
+      }
+      state.t = composedAt(loc.ci, loc.si, Math.max(vt, seg.start));
+      updateTransport(loc, vt);
+      this.raf = requestAnimationFrame(tick);
+    };
+    this.raf = requestAnimationFrame(tick);
+  },
+
+  pause() {
+    this.token++;
+    state.playing = false;
+    cancelAnimationFrame(this.raf);
+    for (const c of state.clips) { try { c.video.pause(); } catch (e) {} }
+    updatePlayBtn();
+  },
+
+  async seekComposed(t) {
+    state.t = Math.min(Math.max(0, t), totalDur());
+    await this.show(locate(state.t));
+  },
+};
+
+function stopPlayback() { if (state.playing) player.pause(); }
+
+function updatePlayBtn() {
+  $('#playBtn').textContent = state.playing ? '⏸' : '▶';
+  $('#stageHint').classList.toggle('hidden', state.playing);
+}
+
+function updateTransport(loc, vt) {
+  const total = totalDur();
+  $('#curTime').textContent = fmt(state.t);
+  $('#totTime').textContent = fmt(total);
+  const seek = $('#seek');
+  if (!seek._dragging) {
+    seek.max = Math.max(total, 0.01);
+    seek.value = state.t;
+  }
+  $('#seekFill').style.width = total > 0 ? (state.t / total * 100) + '%' : '0%';
+  // strip playhead on the active clip
+  if (!loc && state.playing === false) loc = locate(state.t);
+  document.querySelectorAll('.playhead').forEach(el => el.style.display = 'none');
+  if (loc) {
+    const c = state.clips[loc.ci];
+    const row = clipList.querySelector(`[data-clip="${c.id}"] .playhead`);
+    if (row && c.duration) {
+      const t = vt != null ? vt : loc.vt;
+      row.style.display = 'block';
+      row.style.left = (t / c.duration * 100) + '%';
+    }
+  }
+}
+
+/* ═══════════════ RENDERING ═══════════════ */
+
+function refresh() {
+  const has = state.clips.length > 0;
+  $('#emptyState').style.display = has ? 'none' : '';
+  $('#editorUI').classList.toggle('on', has);
+  $('#exportBtn').disabled = !has || totalDur() <= 0.01 || state.exporting;
+
+  if (state.sel && (!clipById(state.sel.clipId) || !clipById(state.sel.clipId).segments[state.sel.si]))
+    state.sel = null;
+
+  state.t = Math.min(state.t, totalDur());
+
+  if (!has) { clipList.innerHTML = ''; return; }
+
+  clipList.innerHTML = '';
+  state.clips.forEach((clip, idx) => {
+    clipList.appendChild(makeInsertZone(idx));
+    clipList.appendChild(makeClipRow(clip, idx));
+  });
+
+  const saved = Math.max(0, rawDur() - totalDur());
+  $('#savedChip').textContent = '✂ saved ' + fmtS(saved);
+  updateTransport();
+  requestAnimationFrame(drawAllWaves);
+}
+
+function makeInsertZone(idx) {
+  const z = document.createElement('div');
+  z.className = 'insert-zone';
+  const b = document.createElement('button');
+  b.textContent = '＋ insert clips here';
+  b.addEventListener('click', () => { insertIndex = idx; $('#fileInput').click(); });
+  z.appendChild(b);
+  z.addEventListener('dragover', e => { e.preventDefault(); z.classList.add('over'); });
+  z.addEventListener('dragleave', () => z.classList.remove('over'));
+  z.addEventListener('drop', e => {
+    e.preventDefault(); e.stopPropagation();
+    z.classList.remove('over');
+    if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files, idx);
+  });
+  return z;
+}
+
+function makeClipRow(clip, idx) {
+  const row = document.createElement('div');
+  row.className = 'clip-row';
+  row.dataset.clip = clip.id;
+
+  /* header */
+  const head = document.createElement('div');
+  head.className = 'clip-head';
+
+  const grab = document.createElement('span');
+  grab.className = 'grab';
+  grab.textContent = '⠿';
+  grab.title = 'Drag to reorder';
+  grab.draggable = true;
+  grab.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('text/plain', String(clip.id));
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setDragImage(row, 24, 24); } catch (err) {}
+    row.classList.add('dragging');
+  });
+  grab.addEventListener('dragend', () => row.classList.remove('dragging'));
+
+  const thumb = document.createElement('img');
+  thumb.className = 'clip-thumb';
+  thumb.alt = '';
+  if (clip.thumb) thumb.src = clip.thumb;
+
+  const info = document.createElement('div');
+  info.className = 'clip-info';
+  const nm = document.createElement('div');
+  nm.className = 'clip-name';
+  nm.textContent = (idx + 1) + '. ' + clip.name;
+  const meta = document.createElement('div');
+  meta.className = 'clip-meta';
+  if (clip.status === 'loading') meta.textContent = 'loading…';
+  else if (clip.status === 'error') meta.innerHTML = '<span class="warn">⚠ format not supported — remove this clip</span>';
+  else if (clip.status === 'analyzing') meta.textContent = fmt(clip.duration) + ' · detecting pauses…';
+  else {
+    const pauses = gapsOf(clip).length;
+    const saved = Math.max(0, clip.duration - keptDur(clip));
+    let s = fmt(clip.duration) + ' · ' + pauses + (pauses === 1 ? ' pause cut' : ' pauses cut');
+    if (saved > 0.05) s += ' · <span class="saved">saved ' + fmtS(saved) + '</span>';
+    if (clip.status === 'noaudio') s += ' · <span class="warn">no audio track — kept in full</span>';
+    if (!clip.segments.length) s = fmt(clip.duration) + ' · <span class="warn">fully cut — click the strip to restore</span>';
+    meta.innerHTML = s;
+  }
+  info.appendChild(nm);
+  info.appendChild(meta);
+
+  const actions = document.createElement('div');
+  actions.className = 'clip-actions';
+  const mk = (txt, title, fn, cls) => {
+    const b = document.createElement('button');
+    b.className = 'icon-btn' + (cls ? ' ' + cls : '');
+    b.textContent = txt;
+    b.title = title;
+    b.addEventListener('click', fn);
+    return b;
+  };
+  const up = mk('↑', 'Move up', () => moveClip(idx, idx - 1));
+  const dn = mk('↓', 'Move down', () => moveClip(idx, idx + 1));
+  up.disabled = idx === 0;
+  dn.disabled = idx === state.clips.length - 1;
+  actions.appendChild(up);
+  actions.appendChild(dn);
+  actions.appendChild(mk('✕', 'Remove clip', () => removeClip(clip), 'danger'));
+
+  head.appendChild(grab);
+  head.appendChild(thumb);
+  head.appendChild(info);
+  head.appendChild(actions);
+  row.appendChild(head);
+
+  /* strip */
+  const strip = document.createElement('div');
+  strip.className = 'strip';
+  const cnv = document.createElement('canvas');
+  cnv.dataset.clip = clip.id;
+  strip.appendChild(cnv);
+  const olay = document.createElement('div');
+  olay.className = 'olay';
+  strip.appendChild(olay);
+  const ph = document.createElement('div');
+  ph.className = 'playhead';
+  strip.appendChild(ph);
+  row.appendChild(strip);
+
+  if (clip.status === 'analyzing' || clip.status === 'loading') {
+    const note = document.createElement('div');
+    note.className = 'analyzing-note';
+    note.innerHTML = '<span class="spinner"></span> detecting pauses…';
+    strip.appendChild(note);
+  } else {
+    buildOverlays(clip, olay, strip);
+  }
+
+  /* row drag & drop reorder */
+  row.addEventListener('dragover', e => {
+    if (![...e.dataTransfer.types].includes('text/plain')) return;
+    e.preventDefault();
+    const r = row.getBoundingClientRect();
+    const before = (e.clientY - r.top) < r.height / 2;
+    row.classList.toggle('drag-over-top', before);
+    row.classList.toggle('drag-over-bottom', !before);
+  });
+  row.addEventListener('dragleave', () => row.classList.remove('drag-over-top', 'drag-over-bottom'));
+  row.addEventListener('drop', e => {
+    e.preventDefault();
+    row.classList.remove('drag-over-top', 'drag-over-bottom');
+    const id = parseInt(e.dataTransfer.getData('text/plain'), 10);
+    if (!id) return;
+    const from = state.clips.findIndex(c => c.id === id);
+    if (from < 0) return;
+    const r = row.getBoundingClientRect();
+    let to = idx + ((e.clientY - r.top) < r.height / 2 ? 0 : 1);
+    if (from < to) to--;
+    if (to !== from) moveClip(from, to);
+  });
+
+  return row;
+}
+
+function buildOverlays(clip, olay, strip) {
+  olay.innerHTML = '';
+  const dur = clip.duration || 1;
+  const pct = t => (t / dur * 100) + '%';
+
+  // removed regions (gaps) — click to restore
+  for (const g of gapsOf(clip)) {
+    const el = document.createElement('div');
+    el.className = 'gap';
+    el.style.left = pct(g.start);
+    el.style.width = pct(g.end - g.start);
+    el.title = 'Cut: ' + fmtS(g.end - g.start) + ' — click to restore';
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      stopPlayback();
+      restoreGap(clip, g);
+      refresh();
+    });
+    olay.appendChild(el);
+  }
+
+  // special case: everything cut → click anywhere restores
+  if (!clip.segments.length && clip.duration) return;
+
+  // kept segments
+  clip.segments.forEach((seg, si) => {
+    const el = document.createElement('div');
+    el.className = 'seg';
+    if (state.sel && state.sel.clipId === clip.id && state.sel.si === si) el.classList.add('sel');
+    el.style.left = pct(seg.start);
+    el.style.width = pct(segLen(seg));
+    el.title = 'Kept: ' + fmtS(segLen(seg)) + ' — click to select, drag edges to trim';
+
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      state.sel = { clipId: clip.id, si };
+      refresh();
+    });
+
+    const kill = document.createElement('button');
+    kill.className = 'kill';
+    kill.textContent = '✕';
+    kill.title = 'Cut this segment';
+    kill.addEventListener('click', e => {
+      e.stopPropagation();
+      stopPlayback();
+      clip.segments.splice(si, 1);
+      state.sel = null;
+      refresh();
+    });
+    el.appendChild(kill);
+
+    for (const side of ['l', 'r']) {
+      const h = document.createElement('div');
+      h.className = 'h ' + side;
+      attachHandle(h, clip, si, side, strip);
+      el.appendChild(h);
+    }
+    olay.appendChild(el);
+  });
+}
+
+function attachHandle(el, clip, si, side, strip) {
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    stopPlayback();
+    const rect = strip.getBoundingClientRect();
+    const seg = clip.segments[si];
+    const olay = strip.querySelector('.olay');
+    const move = ev => {
+      const t = (ev.clientX - rect.left) / rect.width * clip.duration;
+      if (side === 'l') {
+        const min = si > 0 ? clip.segments[si - 1].end + 0.05 : 0;
+        seg.start = Math.min(Math.max(t, min), seg.end - 0.1);
+      } else {
+        const max = si < clip.segments.length - 1 ? clip.segments[si + 1].start - 0.05 : clip.duration;
+        seg.end = Math.max(Math.min(t, max), seg.start + 0.1);
+      }
+      buildOverlays(clip, olay, strip);
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      refresh();
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  });
+}
+
+function moveClip(from, to) {
+  if (to < 0 || to >= state.clips.length) return;
+  stopPlayback();
+  const [c] = state.clips.splice(from, 1);
+  state.clips.splice(to, 0, c);
+  refresh();
+}
+
+function removeClip(clip) {
+  stopPlayback();
+  const i = state.clips.indexOf(clip);
+  if (i < 0) return;
+  state.clips.splice(i, 1);
+  try { clip.srcNode && clip.srcNode.disconnect(); } catch (e) {}
+  try { clip.monGain && clip.monGain.disconnect(); } catch (e) {}
+  clip.video.remove();
+  URL.revokeObjectURL(clip.url);
+  if (state.sel && state.sel.clipId === clip.id) state.sel = null;
+  refresh();
+}
+
+/* waveforms */
+function drawAllWaves() {
+  document.querySelectorAll('.strip canvas').forEach(cnv => {
+    const clip = clipById(parseInt(cnv.dataset.clip, 10));
+    if (clip) drawWave(cnv, clip);
+  });
+}
+
+function drawWave(canvas, clip) {
+  const W = canvas.clientWidth, H = canvas.clientHeight;
+  if (!W || !H) return;
+  const r = window.devicePixelRatio || 1;
+  canvas.width = W * r;
+  canvas.height = H * r;
+  const g = canvas.getContext('2d');
+  g.scale(r, r);
+  g.clearRect(0, 0, W, H);
+  g.fillStyle = 'rgba(200,162,255,0.5)';
+  if (!clip.db) {
+    g.fillRect(0, H / 2 - 1, W, 2);
+    return;
+  }
+  const n = clip.db.length;
+  for (let x = 0; x < W; x++) {
+    const i0 = Math.floor(x * n / W);
+    const i1 = Math.max(i0 + 1, Math.floor((x + 1) * n / W));
+    let m = -100;
+    for (let i = i0; i < i1; i++) if (clip.db[i] > m) m = clip.db[i];
+    const a = Math.min(1, Math.max(0, (m + 60) / 58));
+    const h = Math.max(1.5, a * H * 0.88);
+    g.fillRect(x, (H - h) / 2, 1, h);
+  }
+}
+
+let resizeT;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeT);
+  resizeT = setTimeout(drawAllWaves, 150);
+});
+
+/* ═══════════════ EXPORT ═══════════════ */
+
+function pickMime() {
+  const cands = [
+    'video/mp4;codecs="avc1.42E01E,mp4a.40.2"',
+    'video/mp4',
+    'video/webm;codecs="vp9,opus"',
+    'video/webm;codecs="vp8,opus"',
+    'video/webm',
+  ];
+  for (const m of cands) {
+    try { if (MediaRecorder.isTypeSupported(m)) return m; } catch (e) {}
+  }
+  return '';
+}
+
+function evenDim(n) { return Math.max(2, 2 * Math.round(n / 2)); }
+
+function openExportModal() {
+  const first = state.clips.find(c => c.video.videoWidth);
+  const sel = $('#resSel');
+  sel.innerHTML = '';
+  const opts = [];
+  if (first) {
+    const w = evenDim(first.video.videoWidth), h = evenDim(first.video.videoHeight);
+    opts.push({ label: `Source — ${w} × ${h}`, w, h });
+  }
+  opts.push({ label: 'Full HD — 1920 × 1080', w: 1920, h: 1080 });
+  opts.push({ label: 'HD — 1280 × 720', w: 1280, h: 720 });
+  opts.push({ label: 'Vertical — 1080 × 1920', w: 1080, h: 1920 });
+  opts.forEach((o, i) => {
+    const el = document.createElement('option');
+    el.value = i;
+    el.textContent = o.label;
+    sel.appendChild(el);
+  });
+  sel._opts = opts;
+  $('#exportSetup').hidden = false;
+  $('#exportProgress').hidden = true;
+  $('#exportDone').hidden = true;
+  $('#exportModal').hidden = false;
+}
+
+async function runExport() {
+  const sel = $('#resSel');
+  const o = sel._opts[parseInt(sel.value, 10)] || sel._opts[0];
+  const total = totalDur();
+  if (total <= 0.01) { toast('Nothing to export'); return; }
+
+  stopPlayback();
+  ensureAudio();
+  if (actx.state === 'suspended') await actx.resume();
+
+  state.exporting = true;
+  exportCancel = false;
+  $('#exportSetup').hidden = true;
+  $('#exportProgress').hidden = false;
+
+  let wake = null;
+  try { wake = await navigator.wakeLock.request('screen'); } catch (e) {}
+
+  for (const c of state.clips) if (c.monGain) c.monGain.gain.value = 0; // silent monitoring
+
+  const cnv = document.createElement('canvas');
+  cnv.width = o.w; cnv.height = o.h;
+  const g = cnv.getContext('2d');
+  const vstream = cnv.captureStream(30);
+  const stream = new MediaStream([
+    ...vstream.getVideoTracks(),
+    ...streamDest.stream.getAudioTracks(),
+  ]);
+  const mime = pickMime();
+  const bitrate = Math.round(Math.min(12e6, Math.max(3e6, o.w * o.h * 4.5)));
+  let rec;
+  try {
+    rec = new MediaRecorder(stream, { mimeType: mime || undefined, videoBitsPerSecond: bitrate, audioBitsPerSecond: 192000 });
+  } catch (e) {
+    rec = new MediaRecorder(stream);
+  }
+  const chunks = [];
+  rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  const stopped = new Promise(res => { rec.onstop = res; });
+
+  const drawFrame = v => {
+    const vw = v.videoWidth, vh = v.videoHeight;
+    g.fillStyle = '#000';
+    g.fillRect(0, 0, o.w, o.h);
+    if (!vw) return;
+    const s = Math.min(o.w / vw, o.h / vh);
+    const dw = vw * s, dh = vh * s;
+    g.drawImage(v, (o.w - dw) / 2, (o.h - dh) / 2, dw, dh);
+  };
+
+  let started = false;
+  let doneDur = 0;
+  const t0 = performance.now();
+
+  outer:
+  for (const c of state.clips) {
+    for (const seg of c.segments) {
+      if (exportCancel) break outer;
+      const v = c.video;
+      v.pause();
+      await seekTo(v, seg.start);
+      if (exportCancel) break outer;
+      drawFrame(v);
+      try { await v.play(); } catch (e) { continue; }
+      if (!started) { rec.start(250); started = true; }
+      else if (rec.state === 'paused') rec.resume();
+
+      await new Promise(res => {
+        const loop = () => {
+          if (exportCancel || v.ended || v.currentTime >= seg.end - 0.015) { res(); return; }
+          drawFrame(v);
+          const prog = doneDur + Math.max(0, v.currentTime - seg.start);
+          updateExportProgress(prog, total);
+          requestAnimationFrame(loop);
+        };
+        loop();
+      });
+
+      if (rec.state === 'recording') rec.pause();
+      v.pause();
+      doneDur += segLen(seg);
+    }
+  }
+
+  if (started && rec.state !== 'inactive') rec.stop();
+  if (started) await stopped;
+
+  for (const c of state.clips) if (c.monGain) c.monGain.gain.value = 1;
+  if (wake) { try { await wake.release(); } catch (e) {} }
+  state.exporting = false;
+
+  if (exportCancel || !chunks.length) {
+    $('#exportModal').hidden = true;
+    if (exportCancel) toast('Export cancelled');
+    else toast('Export failed — no data was recorded');
+    refresh();
+    return;
+  }
+
+  const type = (mime || 'video/webm').split(';')[0];
+  const ext = type.includes('mp4') ? 'mp4' : 'webm';
+  const blob = new Blob(chunks, { type });
+  if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+  lastBlobUrl = URL.createObjectURL(blob);
+  const d = new Date();
+  const stamp = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0')
+    + '-' + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0');
+  const fname = `graceful-cut-${stamp}.${ext}`;
+
+  const a = document.createElement('a');
+  a.href = lastBlobUrl;
+  a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  const mb = (blob.size / 1048576).toFixed(1);
+  $('#doneMsg').textContent = `${fname} (${mb} MB) has been downloaded.`;
+  const rd = $('#redownload');
+  rd.href = lastBlobUrl;
+  rd.download = fname;
+  $('#exportProgress').hidden = true;
+  $('#exportDone').hidden = false;
+  refresh();
+}
+
+function updateExportProgress(done, total) {
+  const p = Math.min(100, done / total * 100);
+  $('#progFill').style.width = p + '%';
+  $('#progPct').textContent = Math.floor(p) + '%';
+  $('#progEta').textContent = '~' + fmt(Math.max(0, total - done)) + ' left';
+}
+
+/* ═══════════════ SETTINGS ═══════════════ */
+
+function bindSlider(inputId, outId, key, fmtFn) {
+  const inp = $(inputId), out = $(outId);
+  inp.addEventListener('input', () => {
+    settings[key] = parseFloat(inp.value);
+    out.textContent = fmtFn(settings[key]);
+  });
+}
+bindSlider('#sThresh', '#oThresh', 'thresholdDb', v => v + ' dB');
+bindSlider('#sMin', '#oMin', 'minPause', v => v.toFixed(2) + 's');
+bindSlider('#sPad', '#oPad', 'pad', v => v.toFixed(2) + 's');
+
+$('#redetectBtn').addEventListener('click', () => {
+  const analyzed = state.clips.filter(c => c.db);
+  if (!analyzed.length) return;
+  stopPlayback();
+  for (const c of analyzed) c.segments = detectSegments(c);
+  state.sel = null;
+  state.t = 0;
+  refresh();
+  toast('Pauses re-detected on ' + analyzed.length + (analyzed.length === 1 ? ' clip' : ' clips'));
+});
+
+/* ═══════════════ WIRING ═══════════════ */
+
+$('#fileInput').addEventListener('change', e => {
+  addFiles(e.target.files, insertIndex);
+  insertIndex = null;
+  e.target.value = '';
+});
+$('#addClipsBtn').addEventListener('click', () => { insertIndex = null; $('#fileInput').click(); });
+$('#addEndBtn').addEventListener('click', () => { insertIndex = null; $('#fileInput').click(); });
+$('#dropzone').addEventListener('click', () => { insertIndex = null; $('#fileInput').click(); });
+
+['dragover', 'drop'].forEach(ev =>
+  document.addEventListener(ev, e => { e.preventDefault(); }));
+document.addEventListener('drop', e => {
+  if (state.exporting) return;
+  if (e.dataTransfer && e.dataTransfer.files.length) addFiles(e.dataTransfer.files, null);
+});
+$('#dropzone').addEventListener('dragover', () => $('#dropzone').classList.add('over'));
+$('#dropzone').addEventListener('dragleave', () => $('#dropzone').classList.remove('over'));
+
+$('#playBtn').addEventListener('click', () => state.playing ? player.pause() : player.play());
+$('#stageHint').addEventListener('click', () => state.playing ? player.pause() : player.play());
+
+const seek = $('#seek');
+seek.addEventListener('pointerdown', () => {
+  seek._dragging = true;
+  player.wasPlaying = state.playing;
+  stopPlayback();
+});
+seek.addEventListener('input', () => {
+  player.seekComposed(parseFloat(seek.value));
+});
+seek.addEventListener('change', () => {
+  seek._dragging = false;
+  player.seekComposed(parseFloat(seek.value)).then(() => {
+    if (player.wasPlaying) player.play();
+    player.wasPlaying = false;
+  });
+});
+
+$('#exportBtn').addEventListener('click', openExportModal);
+$('#startExportBtn').addEventListener('click', runExport);
+$('#cancelSetupBtn').addEventListener('click', () => { $('#exportModal').hidden = true; });
+$('#cancelExportBtn').addEventListener('click', () => { exportCancel = true; });
+$('#closeDoneBtn').addEventListener('click', () => { $('#exportModal').hidden = true; });
+
+document.addEventListener('keydown', e => {
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (['input', 'select', 'textarea', 'button'].includes(tag)) return;
+  if (state.exporting) return;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    state.playing ? player.pause() : player.play();
+  } else if ((e.key === 'Delete' || e.key === 'Backspace') && state.sel) {
+    e.preventDefault();
+    const c = clipById(state.sel.clipId);
+    if (c && c.segments[state.sel.si]) {
+      stopPlayback();
+      c.segments.splice(state.sel.si, 1);
+      state.sel = null;
+      refresh();
+    }
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    stopPlayback();
+    player.seekComposed(state.t + (e.key === 'ArrowLeft' ? -2 : 2));
+  }
+});
+
+window.addEventListener('beforeunload', e => {
+  if (state.exporting || state.clips.length) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+refresh();
+
+/* exposed for debugging & tests */
+window.gracefulEditor = { state, settings, addFiles, detectSegments, totalDur, rawDur, locate, player };
+</script>
+</body>
+</html>

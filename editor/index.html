@@ -475,7 +475,7 @@
       <div class="slider-group">
         <label for="sThresh">Sensitivity</label>
         <input type="range" class="mini" id="sThresh" min="-60" max="-25" step="1" value="-42" />
-        <output id="oThresh">-42 dB</output>
+        <output id="oThresh">Auto</output>
       </div>
       <div class="slider-group">
         <label for="sMin">Min pause</label>
@@ -1179,10 +1179,29 @@ function applyRetakes(clip) {
   }
 }
 
+/* Real recordings are never digitally silent during pauses — room tone and
+ * mic hiss often sit ABOVE any fixed threshold, which then cuts nothing.
+ * So we measure each clip's own noise floor and speech level and place the
+ * cut line between them; the Sensitivity slider nudges that line up/down. */
+function effectiveThresholdDb(clip) {
+  const db = clip.db;
+  const bias = settings.thresholdDb - (-42); // slider offset from its default
+  if (!db || !db.length) return settings.thresholdDb;
+  const sorted = Float32Array.from(db).sort();
+  const q = f => sorted[Math.min(sorted.length - 1, Math.floor(f * sorted.length))];
+  const floor = q(0.08);    // noise floor: quietest stretches
+  const speech = q(0.985);  // speech level: loudest stretches
+  let t;
+  if (speech - floor < 8) t = floor - 10; // can't tell speech from noise — fail safe, cut nothing
+  else t = Math.min(floor + Math.max(6, Math.min(14, (speech - floor) * 0.35)), speech - 6);
+  return t + bias;
+}
+
 function detectSegments(clip) {
   const dur = clip.duration;
   if (!clip.db || !dur) return dur ? [{ start: 0, end: dur }] : [];
-  const { thresholdDb, minPause, pad } = settings;
+  const { minPause, pad } = settings;
+  const thresholdDb = effectiveThresholdDb(clip);
   const db = clip.db, hop = clip.hop;
   const removed = [];
   let i = 0;
@@ -1932,7 +1951,10 @@ function bindSlider(inputId, outId, key, fmtFn) {
     out.textContent = fmtFn(settings[key]);
   });
 }
-bindSlider('#sThresh', '#oThresh', 'thresholdDb', v => v + ' dB');
+bindSlider('#sThresh', '#oThresh', 'thresholdDb', v => {
+  const d = Math.round(v + 42);
+  return d === 0 ? 'Auto' : (d > 0 ? 'Auto +' + d : 'Auto −' + (-d));
+});
 bindSlider('#sMin', '#oMin', 'minPause', v => v.toFixed(2) + 's');
 bindSlider('#sPad', '#oPad', 'pad', v => v.toFixed(2) + 's');
 

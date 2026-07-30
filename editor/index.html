@@ -820,6 +820,7 @@ async function captureAudioRealtime(clip, onProg) {
   };
   try {
     v.pause();
+    v.muted = false; // a muted element outputs silence into the graph
     await seekTo(v, 0);
     v.playbackRate = SPEED;
     if ('preservesPitch' in v) v.preservesPitch = true;
@@ -1295,12 +1296,20 @@ function blessAllVideos() {
   if (state.exporting || state.cutting) return;
   for (const c of state.clips) {
     if (c.blessed || c.status === 'error' || c.status === 'loading') continue;
+    const v = c.video;
+    c.blessed = true;
     try {
-      const p = c.video.play();
-      c.video.pause();
-      if (p && p.catch) p.catch(() => {});
-      c.blessed = true;
-    } catch (e) {}
+      v.muted = true; // silent while blessing — unmuted on settle
+      const p = v.play();
+      const finish = () => {
+        v.muted = false;
+        if (state.cutting || state.exporting) return;            // capture/export own this element now
+        if (state.playing && v.classList.contains('on')) return; // it's the active preview — leave it
+        try { v.pause(); } catch (e) {}
+      };
+      if (p && p.then) p.then(finish, () => { v.muted = false; });
+      else setTimeout(finish, 60);
+    } catch (e) { try { v.muted = false; } catch (e2) {} }
   }
   if (actx && actx.state === 'suspended') actx.resume();
 }
@@ -1326,8 +1335,8 @@ const player = {
     updateTransport();
   },
 
-  async play() {
-    if (state.playing || state.exporting) return;
+  play() {
+    if (state.playing || state.exporting || state.cutting) return;
     if (totalDur() <= 0.01) { toast('Nothing to play yet — everything is cut'); return; }
     // no graph here: preview plays elements natively (capture-fallback clips
     // already routed through the graph just need the context running)
@@ -1337,43 +1346,64 @@ const player = {
     if (!loc) return;
     state.playing = true;
     updatePlayBtn();
-    this.startSeg(loc);
-  },
-
-  async startSeg(loc) {
-    const tok = ++this.token;
-    const c = state.clips[loc.ci];
     this.setActive(loc);
-    await seekTo(c.video, loc.vt);
-    if (tok !== this.token || !state.playing) return;
-    try { await c.video.play(); }
-    catch (e) {
+    // play() must fire synchronously inside the user's tap for iOS — position
+    // is corrected with a seek-while-playing, which needs no new permission
+    const v = state.clips[loc.ci].video;
+    v.muted = false;
+    try { if (Math.abs(v.currentTime - loc.vt) > 0.05) v.currentTime = loc.vt; } catch (e) {}
+    const p = v.play();
+    if (p && p.catch) p.catch(e => {
+      if (!state.playing) return;
       this.pause();
       if (e && e.name === 'NotAllowedError') toast('Tap ▶ to play');
-      return;
-    }
-    if (tok !== this.token || !state.playing) { c.video.pause(); return; }
+    });
+    this.runLoop(loc);
+  },
 
+  runLoop(startLoc) {
+    cancelAnimationFrame(this.raf);
+    const tok = ++this.token;
+    let loc = startLoc;
     const tick = () => {
       if (tok !== this.token || !state.playing) return;
-      const seg = c.segments[loc.si];
+      const c = state.clips[loc.ci];
+      const seg = c && c.segments[loc.si];
       if (!seg) { this.pause(); return; }
-      const vt = c.video.currentTime;
-      if (c.video.ended || vt >= seg.end - 0.015) {
-        c.video.pause();
-        const nxt = nextLoc(loc);
-        if (nxt) {
+      const v = c.video;
+      if (!v.seeking) {
+        const vt = v.currentTime;
+        if (v.ended || vt >= seg.end - 0.015) {
+          const nxt = nextLoc(loc);
+          if (!nxt) {
+            state.t = totalDur();
+            this.pause();
+            updateTransport();
+            return;
+          }
           state.t = composedAt(nxt.ci, nxt.si, nxt.vt);
-          this.startSeg(nxt);
+          if (nxt.ci === loc.ci) {
+            // same element: jump the cut WITHOUT pausing — keeps iOS happy
+            try { v.currentTime = nxt.vt; } catch (e) {}
+          } else {
+            v.pause();
+            this.setActive(nxt);
+            const nv = state.clips[nxt.ci].video;
+            nv.muted = false;
+            try { nv.currentTime = nxt.vt; } catch (e) {}
+            const p = nv.play();
+            if (p && p.catch) p.catch(() => {
+              if (tok !== this.token || !state.playing) return;
+              this.pause();
+              toast('Tap ▶ to continue');
+            });
+          }
+          loc = nxt;
         } else {
-          state.t = totalDur();
-          this.pause();
-          updateTransport();
+          state.t = composedAt(loc.ci, loc.si, Math.min(Math.max(vt, seg.start), seg.end));
+          updateTransport(loc, vt);
         }
-        return;
       }
-      state.t = composedAt(loc.ci, loc.si, Math.max(vt, seg.start));
-      updateTransport(loc, vt);
       this.raf = requestAnimationFrame(tick);
     };
     this.raf = requestAnimationFrame(tick);
@@ -1806,6 +1836,17 @@ async function runExport() {
   if (total <= 0.01) { toast('Nothing to export'); return; }
 
   stopPlayback();
+  // Start the first export element synchronously inside the user's tap —
+  // iOS refuses plays that begin after async gaps.
+  const firstLoc = locate(0);
+  if (firstLoc) {
+    const fc = state.clips[firstLoc.ci];
+    const fv = fc.video;
+    fv.muted = false;
+    try { fv.currentTime = fc.segments[firstLoc.si].start; } catch (e) {}
+    const fp = fv.play();
+    if (fp && fp.catch) fp.catch(() => {});
+  }
   ensureAudio();
   if (actx.state === 'suspended') await actx.resume();
 
@@ -1821,6 +1862,10 @@ async function runExport() {
 
   const cnv = document.createElement('canvas');
   cnv.width = o.w; cnv.height = o.h;
+  // Safari can produce zero frames from a canvas that isn't in the document —
+  // park it on-page, effectively invisible
+  cnv.style.cssText = 'position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0.01;pointer-events:none;';
+  document.body.appendChild(cnv);
   const g = cnv.getContext('2d');
   const vstream = cnv.captureStream(30);
   const stream = new MediaStream([
@@ -1863,6 +1908,7 @@ async function runExport() {
       if (exportCancel) break outer;
       const v = c.video;
       v.pause();
+      v.muted = false;
       await seekTo(v, seg.start);
       if (exportCancel) break outer;
       drawFrame(v);
@@ -1892,8 +1938,9 @@ async function runExport() {
     }
   }
 
-  if (started && rec.state !== 'inactive') rec.stop();
+  if (started && rec.state !== 'inactive') { try { rec.stop(); } catch (e) {} }
   if (started) await stopped;
+  cnv.remove();
 
   for (const c of state.clips) if (c.monGain) c.monGain.gain.value = 1;
   if (wake) { try { await wake.release(); } catch (e) {} }

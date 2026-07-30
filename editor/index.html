@@ -399,6 +399,20 @@
     .done-box p { color: var(--text-muted); font-size: 0.88rem; }
     .done-box a { color: var(--teal); font-weight: 600; }
 
+    #dbgPill {
+      position: fixed; left: 0.8rem; bottom: 0.8rem; z-index: 400;
+      background: rgba(255,184,108,0.12); border: 1px solid rgba(255,184,108,0.4);
+      color: var(--warm); font-size: 0.72rem; font-weight: 600;
+      padding: 0.35rem 0.8rem; border-radius: 100px;
+    }
+    #dbgText {
+      background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 0.6rem 0.7rem; font-family: ui-monospace, Menlo, monospace;
+      font-size: 0.66rem; line-height: 1.5; color: var(--text-muted);
+      white-space: pre-wrap; word-break: break-all;
+      max-height: 55vh; overflow: auto;
+    }
+
     .toast {
       position: fixed; bottom: 1.4rem; left: 50%; transform: translateX(-50%) translateY(20px);
       background: var(--surface-2); border: 1px solid var(--border-light);
@@ -562,6 +576,18 @@
   </div>
 </div>
 
+<button id="dbgPill" hidden>🐞 Diagnostics</button>
+<div class="modal" id="dbgPanel" hidden>
+  <div class="sheet">
+    <h3>Diagnostics</h3>
+    <div id="dbgText"></div>
+    <div class="actions" style="margin-top:1rem">
+      <button class="btn ghost" id="dbgClose">Close</button>
+      <button class="btn primary" id="dbgCopy">Copy log</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <input type="file" id="fileInput" accept="video/*,.mp4,.mov,.m4v,.webm,.mkv" multiple hidden />
 
@@ -572,6 +598,26 @@
 
 const $ = s => document.querySelector(s);
 const stage = $('#stage'), clipList = $('#clipList');
+
+/* ── diagnostics ────
+ * Every failure-prone step logs here. The 🐞 pill appears on the first
+ * warning so a user can copy the log and report exactly what their
+ * device did. Open manually by loading the page with #debug. */
+const DBG = [];
+function dbg(msg, warn) {
+  const line = '[' + (performance.now() / 1000).toFixed(1) + 's] ' + msg;
+  DBG.push(line);
+  if (DBG.length > 300) DBG.shift();
+  try { console.log('[graceful]', msg); } catch (e) {}
+  if (warn) { try { $('#dbgPill').hidden = false; } catch (e) {} }
+}
+window.addEventListener('error', e =>
+  dbg('JS error: ' + e.message + ' @' + (e.filename || '').split('/').pop() + ':' + e.lineno, true));
+window.addEventListener('unhandledrejection', e => {
+  const r = e.reason;
+  dbg('Unhandled rejection: ' + (r && r.name ? r.name + ' — ' + r.message : String(r)), true);
+});
+dbg('ua: ' + navigator.userAgent);
 
 const state = {
   clips: [],           // ordered list of clip objects
@@ -688,6 +734,10 @@ function makeClip(file) {
   v.playsInline = true;
   v.setAttribute('playsinline', '');
   v.muted = false;
+  v.addEventListener('error', () => {
+    const err = v.error;
+    dbg('video element error "' + file.name + '": code ' + (err && err.code) + ' ' + ((err && err.message) || ''), true);
+  });
   stage.appendChild(v);
   return {
     id: ++uid, file, url, video: v,
@@ -728,6 +778,7 @@ async function loadClip(clip) {
     // loaded but uncut: playable in full until the user presses ✂ Cut
     clip.segments = clip.duration ? [{ start: 0, end: clip.duration }] : [];
     clip.status = 'loaded';
+    dbg('loaded "' + clip.name + '": ' + clip.duration.toFixed(1) + 's ' + clip.video.videoWidth + 'x' + clip.video.videoHeight + ' type=' + (clip.file.type || '?'));
     refresh();
   } catch (e) {
     clip.status = 'error';
@@ -757,14 +808,16 @@ async function decodeTo16kMono(file) {
     // some iOS versions); we resample down ourselves afterwards
     const octx = new OfflineAudioContext(1, 44100, 44100);
     const ab = await octx.decodeAudioData(buf.slice(0)); // copy — decode detaches the buffer
+    dbg('audio decoded via offline context');
     return mixdownResample(ab, 16000);
-  } catch (e) { /* fall through to native-rate decode */ }
+  } catch (e) { dbg('offline decode failed: ' + (e && e.name || e)); }
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!decodeCtx) decodeCtx = actx || new AC();
   const ab = await new Promise((res, rej) => {
     const p = decodeCtx.decodeAudioData(buf, res, rej); // callback form for older Safari
     if (p && p.catch) p.catch(rej);
   });
+  dbg('audio decoded via native context @' + decodeCtx.sampleRate + 'Hz');
   return mixdownResample(ab, 16000);
 }
 
@@ -867,7 +920,7 @@ async function ensureAnalyzed(clip, onProg) {
     mono = await decodeTo16kMono(clip.file);
     if (onProg) onProg(base);
   } catch (e) {
-    console.warn('Direct audio decode failed for', clip.name, '— trying playback capture', e);
+    dbg('direct decode failed for "' + clip.name + '": ' + (e && e.name || e) + ' — trying playback capture');
   }
   if (!mono || mono.length < 3200) {
     try {
@@ -875,8 +928,9 @@ async function ensureAnalyzed(clip, onProg) {
       mono = cap.mono;
       timeScale = cap.timeScale;
       base = 0.85;
+      dbg('playback capture ok: ' + (mono.length / 16000 * timeScale).toFixed(1) + 's of media audio');
     } catch (e) {
-      console.warn('Playback audio capture failed for', clip.name, e);
+      dbg('playback capture failed for "' + clip.name + '": ' + (e && e.name || e) + ' ' + ((e && e.message) || ''), true);
     }
   }
   if (!mono || mono.length < 3200 / timeScale) {
@@ -944,6 +998,8 @@ async function cutAll() {
       clip.segments = detectSegments(clip);
       applyRetakes(clip);
       clip.status = 'ready';
+      dbg('cut "' + clip.name + '": threshold ' + effectiveThresholdDb(clip).toFixed(1) + 'dB, '
+        + clip.segments.length + ' kept, ' + (clip.retakes || []).length + ' retakes');
     } else {
       clip.segments = clip.duration ? [{ start: 0, end: clip.duration }] : [];
       clip.retakes = [];
@@ -1351,9 +1407,11 @@ const player = {
     // is corrected with a seek-while-playing, which needs no new permission
     const v = state.clips[loc.ci].video;
     v.muted = false;
+    dbg('play: clip ' + (loc.ci + 1) + ' @' + loc.vt.toFixed(2) + 's readyState=' + v.readyState);
     try { if (Math.abs(v.currentTime - loc.vt) > 0.05) v.currentTime = loc.vt; } catch (e) {}
     const p = v.play();
     if (p && p.catch) p.catch(e => {
+      dbg('play blocked: ' + (e && e.name) + ' — ' + ((e && e.message) || ''), true);
       if (!state.playing) return;
       this.pause();
       if (e && e.name === 'NotAllowedError') toast('Tap ▶ to play');
@@ -1392,7 +1450,8 @@ const player = {
             nv.muted = false;
             try { nv.currentTime = nxt.vt; } catch (e) {}
             const p = nv.play();
-            if (p && p.catch) p.catch(() => {
+            if (p && p.catch) p.catch(err => {
+              dbg('clip-transition play blocked: ' + (err && err.name), true);
               if (tok !== this.token || !state.playing) return;
               this.pause();
               toast('Tap ▶ to continue');
@@ -1878,8 +1937,11 @@ async function runExport() {
   try {
     rec = new MediaRecorder(stream, { mimeType: mime || undefined, videoBitsPerSecond: bitrate, audioBitsPerSecond: 192000 });
   } catch (e) {
+    dbg('MediaRecorder with options failed (' + (e && e.name) + '), using defaults');
     rec = new MediaRecorder(stream);
   }
+  dbg('export start: ' + o.w + 'x' + o.h + ' mime="' + (rec.mimeType || mime) + '" tracks v' + stream.getVideoTracks().length + '/a' + stream.getAudioTracks().length);
+  rec.onerror = e => dbg('recorder error: ' + ((e && e.error && e.error.name) || e), true);
   const chunks = [];
   rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
   const stopped = new Promise(res => { rec.onstop = res; });
@@ -1916,7 +1978,11 @@ async function runExport() {
       catch (e) {
         // one retry after a beat — iOS occasionally rejects the first attempt
         await new Promise(r => setTimeout(r, 300));
-        try { await v.play(); } catch (e2) { skipped++; doneDur += segLen(seg); continue; }
+        try { await v.play(); }
+        catch (e2) {
+          dbg('export segment play blocked: ' + (e2 && e2.name), true);
+          skipped++; doneDur += segLen(seg); continue;
+        }
       }
       if (!started) { rec.start(250); started = true; }
       else recResume();
@@ -1946,10 +2012,11 @@ async function runExport() {
   if (wake) { try { await wake.release(); } catch (e) {} }
   state.exporting = false;
 
+  dbg('export finished: ' + chunks.length + ' chunks, skipped ' + skipped + ' segments');
   if (exportCancel || !chunks.length) {
     $('#exportModal').hidden = true;
     if (exportCancel) toast('Export cancelled');
-    else toast('Export failed — no data was recorded');
+    else { dbg('export produced no data', true); toast('Export failed — no data was recorded'); }
     refresh();
     return;
   }
@@ -2082,6 +2149,24 @@ document.addEventListener('keydown', e => {
     player.seekComposed(state.t + (e.key === 'ArrowLeft' ? -2 : 2));
   }
 });
+
+$('#dbgPill').addEventListener('click', () => {
+  $('#dbgText').textContent = DBG.join('\n') || '(no log entries)';
+  $('#dbgPanel').hidden = false;
+});
+$('#dbgClose').addEventListener('click', () => { $('#dbgPanel').hidden = true; });
+$('#dbgCopy').addEventListener('click', async () => {
+  const text = DBG.join('\n');
+  try { await navigator.clipboard.writeText(text); toast('Log copied — paste it in a message'); }
+  catch (e) {
+    const r = document.createRange();
+    r.selectNodeContents($('#dbgText'));
+    const s = getSelection();
+    s.removeAllRanges(); s.addRange(r);
+    toast('Select-all + copy the highlighted text');
+  }
+});
+if (location.hash === '#debug') $('#dbgPill').hidden = false;
 
 window.addEventListener('beforeunload', e => {
   if (state.exporting || state.clips.length) {

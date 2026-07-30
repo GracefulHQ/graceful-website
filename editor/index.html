@@ -794,7 +794,7 @@ function mixdownResample(ab, target) {
  * the WebAudio graph. Works for any playable format, including iPhone .MOV
  * files whose audio Safari refuses to decode directly. */
 async function captureAudioRealtime(clip, onProg) {
-  ensureAudio();
+  ensureClipAudioNode(clip);
   if (actx.state === 'suspended') await actx.resume();
   if (!clip.srcNode) throw new Error('no audio node');
   const v = clip.video;
@@ -914,8 +914,6 @@ async function ensureAnalyzed(clip, onProg) {
 async function cutAll() {
   if (state.cutting || state.exporting || !state.clips.length) return;
   stopPlayback();
-  ensureAudio();
-  if (actx.state === 'suspended') actx.resume();
   state.cutting = true;
   state.sel = null;
   $('#cutModal').hidden = false;
@@ -971,6 +969,7 @@ async function cutAll() {
   $('#cutBtn').innerHTML = '✂&nbsp; Re-cut';
   refresh();
   player.play(); // show the optimized cut right away
+  setTimeout(() => { if (!state.playing && !state.exporting) toast('Tap ▶ to watch your cut'); }, 900);
 }
 
 /* ── retake detection ──
@@ -1240,22 +1239,51 @@ function restoreGap(clip, gap) {
 
 /* ═══════════════ AUDIO GRAPH ═══════════════ */
 
-function ensureAudio() {
+/* The WebAudio graph is only for export and the capture fallback. Preview
+ * deliberately stays OFF the graph — once a video routes through
+ * createMediaElementSource its audio depends on the AudioContext (which iOS
+ * mutes with the silent switch and suspends aggressively), so we only hijack
+ * an element when we actually need its samples. */
+function ensureAudioGraph() {
   if (!actx) {
     actx = new (window.AudioContext || window.webkitAudioContext)();
     streamDest = actx.createMediaStreamDestination();
   }
+}
+
+function ensureClipAudioNode(clip) {
+  ensureAudioGraph();
+  if (clip.srcNode || clip.status === 'error') return;
+  try {
+    clip.srcNode = actx.createMediaElementSource(clip.video);
+    clip.monGain = actx.createGain();
+    clip.srcNode.connect(clip.monGain);
+    clip.monGain.connect(actx.destination);
+    clip.srcNode.connect(streamDest);
+  } catch (e) { /* already connected or no audio */ }
+}
+
+function ensureAudio() {
+  ensureAudioGraph();
+  for (const c of state.clips) ensureClipAudioNode(c);
+}
+
+/* iOS only allows programmatic video.play() on elements that have played at
+ * least once during a real user gesture. Called synchronously at the top of
+ * every button handler, this "blesses" all elements so later seeks/advances/
+ * exports can start them freely. */
+function blessAllVideos() {
+  if (state.exporting || state.cutting) return;
   for (const c of state.clips) {
-    if (!c.srcNode && c.status !== 'error') {
-      try {
-        c.srcNode = actx.createMediaElementSource(c.video);
-        c.monGain = actx.createGain();
-        c.srcNode.connect(c.monGain);
-        c.monGain.connect(actx.destination);
-        c.srcNode.connect(streamDest);
-      } catch (e) { /* already connected or no audio */ }
-    }
+    if (c.blessed || c.status === 'error' || c.status === 'loading') continue;
+    try {
+      const p = c.video.play();
+      c.video.pause();
+      if (p && p.catch) p.catch(() => {});
+      c.blessed = true;
+    } catch (e) {}
   }
+  if (actx && actx.state === 'suspended') actx.resume();
 }
 
 /* ═══════════════ PLAYBACK ENGINE ═══════════════ */
@@ -1282,8 +1310,9 @@ const player = {
   async play() {
     if (state.playing || state.exporting) return;
     if (totalDur() <= 0.01) { toast('Nothing to play yet — everything is cut'); return; }
-    ensureAudio();
-    if (actx.state === 'suspended') actx.resume();
+    // no graph here: preview plays elements natively (capture-fallback clips
+    // already routed through the graph just need the context running)
+    if (actx && actx.state === 'suspended') actx.resume();
     if (state.t >= totalDur() - 0.02) state.t = 0;
     const loc = locate(state.t);
     if (!loc) return;
@@ -1298,7 +1327,12 @@ const player = {
     this.setActive(loc);
     await seekTo(c.video, loc.vt);
     if (tok !== this.token || !state.playing) return;
-    try { await c.video.play(); } catch (e) { this.pause(); return; }
+    try { await c.video.play(); }
+    catch (e) {
+      this.pause();
+      if (e && e.name === 'NotAllowedError') toast('Tap ▶ to play');
+      return;
+    }
     if (tok !== this.token || !state.playing) { c.video.pause(); return; }
 
     const tick = () => {
@@ -1798,7 +1832,11 @@ async function runExport() {
 
   let started = false;
   let doneDur = 0;
-  const t0 = performance.now();
+  let skipped = 0;
+  // Safari's MediaRecorder pause/resume support is spotty — if it throws we
+  // just keep recording through seeks (brief freeze frames beat a dead export)
+  const recPause = () => { try { if (rec.state === 'recording') rec.pause(); } catch (e) {} };
+  const recResume = () => { try { if (rec.state === 'paused') rec.resume(); } catch (e) {} };
 
   outer:
   for (const c of state.clips) {
@@ -1809,9 +1847,14 @@ async function runExport() {
       await seekTo(v, seg.start);
       if (exportCancel) break outer;
       drawFrame(v);
-      try { await v.play(); } catch (e) { continue; }
+      try { await v.play(); }
+      catch (e) {
+        // one retry after a beat — iOS occasionally rejects the first attempt
+        await new Promise(r => setTimeout(r, 300));
+        try { await v.play(); } catch (e2) { skipped++; doneDur += segLen(seg); continue; }
+      }
       if (!started) { rec.start(250); started = true; }
-      else if (rec.state === 'paused') rec.resume();
+      else recResume();
 
       await new Promise(res => {
         const loop = () => {
@@ -1824,7 +1867,7 @@ async function runExport() {
         loop();
       });
 
-      if (rec.state === 'recording') rec.pause();
+      recPause();
       v.pause();
       doneDur += segLen(seg);
     }
@@ -1863,7 +1906,8 @@ async function runExport() {
   a.remove();
 
   const mb = (blob.size / 1048576).toFixed(1);
-  $('#doneMsg').textContent = `${fname} (${mb} MB) has been downloaded.`;
+  $('#doneMsg').textContent = `${fname} (${mb} MB) has been downloaded.`
+    + (skipped ? ` ⚠ ${skipped} segment${skipped === 1 ? '' : 's'} couldn't be played and got skipped — try exporting again.` : '');
   const rd = $('#redownload');
   rd.href = lastBlobUrl;
   rd.download = fname;
@@ -1898,7 +1942,7 @@ $('#sRetake').addEventListener('change', e => {
 });
 bindSlider('#sSim', '#oSim', 'retakeSim', v => Math.round(v * 100) + '%');
 
-$('#cutBtn').addEventListener('click', cutAll);
+$('#cutBtn').addEventListener('click', () => { blessAllVideos(); cutAll(); });
 
 /* ═══════════════ WIRING ═══════════════ */
 
@@ -1920,8 +1964,8 @@ document.addEventListener('drop', e => {
 $('#dropzone').addEventListener('dragover', () => $('#dropzone').classList.add('over'));
 $('#dropzone').addEventListener('dragleave', () => $('#dropzone').classList.remove('over'));
 
-$('#playBtn').addEventListener('click', () => state.playing ? player.pause() : player.play());
-$('#stageHint').addEventListener('click', () => state.playing ? player.pause() : player.play());
+$('#playBtn').addEventListener('click', () => { blessAllVideos(); state.playing ? player.pause() : player.play(); });
+$('#stageHint').addEventListener('click', () => { blessAllVideos(); state.playing ? player.pause() : player.play(); });
 
 const seek = $('#seek');
 seek.addEventListener('pointerdown', () => {
@@ -1941,7 +1985,7 @@ seek.addEventListener('change', () => {
 });
 
 $('#exportBtn').addEventListener('click', openExportModal);
-$('#startExportBtn').addEventListener('click', runExport);
+$('#startExportBtn').addEventListener('click', () => { blessAllVideos(); runExport(); });
 $('#cancelSetupBtn').addEventListener('click', () => { $('#exportModal').hidden = true; });
 $('#cancelExportBtn').addEventListener('click', () => { exportCancel = true; });
 $('#closeDoneBtn').addEventListener('click', () => { $('#exportModal').hidden = true; });
@@ -1952,6 +1996,7 @@ document.addEventListener('keydown', e => {
   if (state.exporting || state.cutting) return;
   if (e.code === 'Space') {
     e.preventDefault();
+    blessAllVideos();
     state.playing ? player.pause() : player.play();
   } else if ((e.key === 'Delete' || e.key === 'Backspace') && state.sel) {
     e.preventDefault();

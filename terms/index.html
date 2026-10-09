@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Terms &amp; Conditions — graceful</title>
-  <meta name="description" content="The terms that govern your use of thegracefulcompany.com." />
+  <meta name="description" content="The terms that govern your use of thegracefulcompany.com and CommonsWay text messages." />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" sizes="32x32" href="../Logo/favicon.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="../Logo/apple-touch-icon.png" />
@@ -100,6 +100,44 @@
       padding: 1.5rem;
     }
 
+    .legal ol { margin: 1rem 0 1rem 1.25rem; }
+    .legal ol li + li { margin-top: 0.5rem; }
+    .legal .caps { text-transform: uppercase; font-size: 0.92rem; letter-spacing: 0.01em; }
+    .legal .toc {
+      margin: 2.5rem 0 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem 1.75rem;
+    }
+    .legal .toc-title {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-dim);
+      margin-bottom: 0.75rem;
+    }
+    .legal .toc ol { margin: 0 0 0 1.25rem; columns: 2; column-gap: 2rem; }
+    .legal .toc li { font-size: 0.9rem; margin: 0 0 0.35rem; break-inside: avoid; }
+    .legal .toc li + li { margin-top: 0; }
+    .legal .toc a { color: var(--text-muted); transition: color 0.2s; }
+    .legal .toc a:hover { color: var(--white); }
+    .legal h2 { scroll-margin-top: 6rem; }
+    .legal .callout {
+      margin: 1.25rem 0;
+      border-left: 3px solid var(--accent);
+      background: rgba(200, 162, 255, 0.05);
+      border-radius: 0 12px 12px 0;
+      padding: 1.25rem 1.5rem;
+    }
+    .legal .table-wrap { overflow-x: auto; margin: 1.25rem 0; }
+    .legal table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .legal th, .legal td {
+      text-align: left; vertical-align: top;
+      padding: 0.75rem 0.9rem;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-muted);
+    }
+    .legal th { color: var(--white); font-weight: 600; background: var(--surface); }
+
     /* ── FOOTER ── */
     footer {
       padding: 4rem 0;
@@ -116,6 +154,10 @@
     .footer-links a { font-size: 0.85rem; color: var(--text-dim); transition: color 0.3s; }
     .footer-links a:hover { color: var(--white); }
     .footer-copy { font-size: 0.8rem; color: var(--text-dim); }
+
+    @media (max-width: 640px) {
+      .legal .toc ol { columns: 1; }
+    }
 
     @media (max-width: 480px) {
       .logo img { height: 40px; }
@@ -141,139 +183,524 @@
     <article class="legal">
       <div class="section-label">Legal</div>
       <h1>Terms &amp; Conditions</h1>
-      <p class="updated">Last updated: October 9, 2026</p>
+      <p class="updated">Effective Date: October 9, 2026 &nbsp;&middot;&nbsp; Last Updated: October 9, 2026</p>
 
       <p>
-        These Terms &amp; Conditions (&ldquo;Terms&rdquo;) govern your access to and use of
-        <strong>thegracefulcompany.com</strong> and any tools or content available on it (together, the
-        &ldquo;Site&rdquo;), operated by The Graceful Company (&ldquo;graceful,&rdquo; &ldquo;we,&rdquo;
-        &ldquo;us,&rdquo; or &ldquo;our&rdquo;). By using the Site, you agree to these Terms. If you do not
-        agree, please do not use the Site.
+        These Terms &amp; Conditions (these &ldquo;Terms&rdquo;) constitute a legally binding agreement between you
+        and The Graceful Company, including when doing business as CommonsWay (collectively, the
+        &ldquo;Company,&rdquo; &ldquo;graceful,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;),
+        governing your access to and use of the website located at <strong>thegracefulcompany.com</strong>,
+        including all subdomains, pages, content, features, and browser-based tools made available on it
+        (collectively, the &ldquo;Site&rdquo;).
+      </p>
+      <p class="caps">
+        Please read these Terms carefully. By accessing or using the Site, you acknowledge that you have read,
+        understood, and agree to be bound by these Terms and by our Privacy Policy. If you do not agree, you must
+        not access or use the Site. Section&nbsp;21 contains a binding arbitration provision and class action
+        waiver that affect your legal rights.
       </p>
 
-      <h2>1. Our services</h2>
+      <div class="toc" role="navigation" aria-label="Contents">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#acceptance">Acceptance of Terms</a></li>
+          <li><a href="#definitions">Definitions</a></li>
+          <li><a href="#commonsway">CommonsWay</a></li>
+          <li><a href="#changes">Changes to These Terms</a></li>
+          <li><a href="#eligibility">Eligibility</a></li>
+          <li><a href="#services">Our Services; Client Agreements</a></li>
+          <li><a href="#license">License to Use the Site</a></li>
+          <li><a href="#conduct">Prohibited Conduct</a></li>
+          <li><a href="#ip">Intellectual Property</a></li>
+          <li><a href="#trademarks">Trademarks and Third-Party Brands</a></li>
+          <li><a href="#tools">Browser-Based Tools</a></li>
+          <li><a href="#submissions">Submissions and Feedback</a></li>
+          <li><a href="#results">No Guarantee of Results</a></li>
+          <li><a href="#third-party">Third-Party Links and Services</a></li>
+          <li><a href="#copyright">Copyright Complaints</a></li>
+          <li><a href="#privacy">Privacy</a></li>
+          <li><a href="#disclaimers">Disclaimer of Warranties</a></li>
+          <li><a href="#liability">Limitation of Liability</a></li>
+          <li><a href="#indemnification">Indemnification</a></li>
+          <li><a href="#law">Governing Law and Venue</a></li>
+          <li><a href="#arbitration">Dispute Resolution and Arbitration</a></li>
+          <li><a href="#termination">Suspension and Termination</a></li>
+          <li><a href="#electronic">Electronic Communications</a></li>
+          <li><a href="#general">General Provisions</a></li>
+          <li><a href="#contact">Contact Us</a></li>
+        </ol>
+      </div>
+
+      <h2 id="acceptance">1. Acceptance of Terms</h2>
       <p>
-        The Site provides information about graceful and the marketing, content, and growth services we offer.
-        Nothing on the Site is an offer to provide services on specific terms. Any client engagement is governed
-        by a separate written agreement, proposal, or statement of work between you and us. If that agreement
-        conflicts with these Terms, the agreement controls for that engagement.
+        By accessing, browsing, or otherwise using the Site, you accept and agree to be bound by these Terms,
+        whether or not you contact us or engage our Services. If you are using the Site on behalf of a company,
+        organization, or other legal entity, you represent and warrant that you have the authority to bind that
+        entity to these Terms, in which case &ldquo;you&rdquo; and &ldquo;your&rdquo; refer to that entity.
       </p>
 
-      <h2>2. Eligibility</h2>
-      <p>
-        You must be at least 18 years old, or the age of majority where you live, to use the Site. If you use
-        the Site on behalf of a company or other organization, you represent that you have authority to accept
-        these Terms on its behalf.
-      </p>
-
-      <h2>3. Acceptable use</h2>
-      <p>You agree not to:</p>
+      <h2 id="definitions">2. Definitions</h2>
       <ul>
-        <li>Use the Site for any unlawful, fraudulent, or harmful purpose;</li>
-        <li>Attempt to gain unauthorized access to the Site, its servers, or any connected systems;</li>
-        <li>Interfere with or disrupt the Site, including by introducing viruses or malicious code;</li>
-        <li>Scrape, copy, or harvest content or data from the Site by automated means without our permission;</li>
-        <li>Impersonate graceful, our team members, or any other person or entity;</li>
-        <li>Use any tool on the Site to process content you do not have the right to use.</li>
+        <li>
+          <strong>&ldquo;Content&rdquo;</strong> means all text, graphics, images, photographs, video, audio,
+          logos, designs, software, code, data, and other materials made available on or through the Site.
+        </li>
+        <li>
+          <strong>&ldquo;Services&rdquo;</strong> means the marketing, content creation, paid advertising, email
+          and SMS marketing, organic social, funnel strategy, growth, website development, and related
+          professional services that the Company provides to Clients.
+        </li>
+        <li>
+          <strong>&ldquo;Client&rdquo;</strong> means a business or organization that has engaged the Company to
+          provide Services under a Client Agreement.
+        </li>
+        <li>
+          <strong>&ldquo;Client Agreement&rdquo;</strong> means any separate written agreement, master services
+          agreement, proposal, statement of work, or order executed or accepted by the Company and a Client.
+        </li>
+        <li>
+          <strong>&ldquo;CommonsWay&rdquo;</strong> means the software platform described in Section&nbsp;3.
+        </li>
+        <li>
+          <strong>&ldquo;User Materials&rdquo;</strong> means any files, media, or other materials that you use
+          with, upload to, or process through the Site or its browser-based tools.
+        </li>
       </ul>
 
-      <h2>4. Intellectual property</h2>
+      <h2 id="commonsway">3. CommonsWay</h2>
       <p>
-        The Site and its content, including text, graphics, logos, photos, videos, and code, are owned by
-        graceful or our licensors and are protected by copyright, trademark, and other laws. You may view the
-        Site for your personal, non-commercial use. You may not copy, modify, distribute, sell, or create
-        derivative works from any part of the Site without our prior written permission.
+        CommonsWay is a software platform owned and operated by The Graceful Company, which does business under
+        the name CommonsWay. It helps service companies run their operations and client portals. The CommonsWay
+        Terms of Service at
+        <a class="inline" href="https://commonsway.com/terms" target="_blank" rel="noopener">commonsway.com/terms</a>
+        govern your use of CommonsWay and are part of these terms.
       </p>
+      <h3>CommonsWay text messages (SMS)</h3>
       <p>
-        The &ldquo;graceful&rdquo; name and logo are our trademarks. Other brand names shown on the Site belong
-        to their respective owners and are used only to identify brands we have worked with. Their appearance
-        does not imply endorsement of the Site.
+        The Graceful Company sends text messages under the CommonsWay name from CommonsWay&rsquo;s own number.
+        Every message starts with &ldquo;CommonsWay:&rdquo;. We send:
       </p>
-
-      <h2>5. Browser-based tools</h2>
+      <ul>
+        <li>one-time sign-in and verification codes you request;</li>
+        <li>invitations a company sends you through CommonsWay;</li>
+        <li>the opt-in confirmation;</li>
+        <li>notices about your CommonsWay account.</li>
+      </ul>
+      <p><strong>We do not send marketing texts.</strong></p>
+      <ul>
+        <li>
+          <strong>Consent:</strong> you get these texts only if you ticked the SMS consent box when you entered
+          your mobile number on a CommonsWay form, or asked for a sign-in code. The box is never pre-ticked, and
+          you don&rsquo;t have to agree to texts to use CommonsWay.
+        </li>
+        <li>
+          <strong>Frequency and cost:</strong> how often you get messages depends on activity on your account.
+          Message and data rates may apply.
+        </li>
+        <li><strong>Opt out:</strong> reply STOP to any message.</li>
+        <li>
+          <strong>Help:</strong> reply HELP, or email
+          <a class="inline" href="mailto:support@commonsway.com">support@commonsway.com</a>.
+        </li>
+        <li>Carriers are not liable for delayed or undelivered messages.</li>
+      </ul>
       <p>
-        We may offer free tools on the Site, such as video editing utilities, that run inside your browser.
-        You keep all rights to the files you use with these tools, and you are responsible for having the
-        rights to use them. These tools are provided for convenience, &ldquo;as is,&rdquo; with no guarantee of
-        results. Please keep your own copies of any original files.
-      </p>
-
-      <h2>6. Your submissions</h2>
-      <p>
-        If you send us ideas, feedback, or suggestions, you agree that we may use them without obligation to you.
-        Please do not send us confidential information unless we have a written confidentiality agreement in place.
-      </p>
-
-      <h2>7. Third-party links</h2>
-      <p>
-        The Site may contain links to third-party websites or services. We do not control them and are not
-        responsible for their content, policies, or practices. Accessing them is at your own risk.
-      </p>
-
-      <h2>8. Disclaimer of warranties</h2>
-      <p>
-        The Site is provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. To the fullest extent
-        permitted by law, we disclaim all warranties, express or implied, including warranties of merchantability,
-        fitness for a particular purpose, and non-infringement. We do not warrant that the Site will be
-        uninterrupted, error-free, or free of harmful components. Results and statistics described on the Site
-        reflect past work and do not guarantee future results.
-      </p>
-
-      <h2>9. Limitation of liability</h2>
-      <p>
-        To the fullest extent permitted by law, graceful and its owners, employees, and contractors will not be
-        liable for any indirect, incidental, special, consequential, or punitive damages, or for any loss of
-        profits, revenue, data, or goodwill, arising from or related to your use of the Site. Our total liability
-        for any claim relating to the Site will not exceed one hundred U.S. dollars (US $100).
-      </p>
-      <p>
-        Some jurisdictions do not allow certain warranty exclusions or liability limits, so some of the above
-        may not apply to you.
+        In the event of any conflict between these Terms and the CommonsWay Terms of Service with respect to your
+        use of CommonsWay, the CommonsWay Terms of Service shall control.
       </p>
 
-      <h2>10. Indemnification</h2>
+      <h2 id="changes">4. Changes to These Terms</h2>
       <p>
-        You agree to defend, indemnify, and hold harmless graceful and its owners, employees, and contractors from
-        any claims, losses, liabilities, and expenses (including reasonable attorneys&rsquo; fees) arising from
-        your misuse of the Site or your violation of these Terms.
+        We reserve the right, in our sole discretion, to modify these Terms at any time. When we do, we will
+        revise the &ldquo;Last Updated&rdquo; date at the top of these Terms and, for material changes, may provide
+        additional notice, such as a prominent notice on the Site. Modified Terms become effective upon posting
+        unless otherwise stated. Your continued access to or use of the Site after modified Terms become effective
+        constitutes your acceptance of them. If you do not agree to the modified Terms, you must stop using the
+        Site. Changes to Section&nbsp;21 will not apply to any dispute of which we had actual notice before the
+        change was posted.
       </p>
 
-      <h2>11. Privacy</h2>
+      <h2 id="eligibility">5. Eligibility</h2>
       <p>
-        Our <a class="inline" href="../privacy/">Privacy Policy</a> explains how we collect and use information
-        when you use the Site. It is part of these Terms.
+        You must be at least eighteen (18) years of age, or the age of legal majority in your jurisdiction if
+        higher, to use the Site. By using the Site, you represent and warrant that you meet this requirement, that
+        you have full power and authority to enter into these Terms, and that your use of the Site does not violate
+        any applicable law or regulation. The Site is not intended for use by any person who is prohibited from
+        using it under the laws of the United States or any other applicable jurisdiction.
       </p>
 
-      <h2>12. Governing law</h2>
+      <h2 id="services">6. Our Services; Client Agreements</h2>
       <p>
-        These Terms are governed by the laws of the United States and the state in which The Graceful Company
-        has its principal place of business, without regard to conflict-of-law rules. Any dispute arising from
-        these Terms or the Site will be resolved in the state or federal courts located there, and you consent
-        to their jurisdiction.
+        The Site is provided for informational purposes and to enable prospective clients to learn about and
+        contact the Company. Descriptions of Services on the Site are not offers capable of acceptance and do not
+        create any obligation on the Company to provide Services.
+      </p>
+      <p>
+        Any engagement for Services is governed exclusively by a Client Agreement. In the event of any conflict
+        between these Terms and a Client Agreement, the Client Agreement shall control with respect to the subject
+        matter of that engagement. Nothing in these Terms modifies the scope, fees, deliverables, ownership of
+        work product, confidentiality obligations, or other terms of any Client Agreement.
+      </p>
+      <p>
+        We reserve the right to decline any engagement, in our sole discretion, for any lawful reason.
       </p>
 
-      <h2>13. Changes to these Terms</h2>
+      <h2 id="license">7. License to Use the Site</h2>
       <p>
-        We may update these Terms from time to time. When we do, we will change the &ldquo;Last updated&rdquo;
-        date at the top of this page. Continued use of the Site after changes are posted means you accept the
-        updated Terms.
+        Subject to your continued compliance with these Terms, the Company grants you a limited, revocable,
+        non-exclusive, non-transferable, non-sublicensable license to access and use the Site and to view its
+        Content solely for your personal or internal business purposes of evaluating and communicating with the
+        Company. You may print or download a reasonable number of pages for these purposes, provided that you do
+        not remove or alter any copyright, trademark, or other proprietary notices.
+      </p>
+      <p>
+        All rights not expressly granted to you in these Terms are reserved by the Company and its licensors. Any
+        use of the Site or Content not expressly permitted by these Terms is a breach of these Terms and may
+        violate copyright, trademark, and other laws.
       </p>
 
-      <h2>14. General</h2>
+      <h2 id="conduct">8. Prohibited Conduct</h2>
+      <p>You agree that you will not, and will not attempt to, or assist or permit any other person to:</p>
+      <ol>
+        <li>use the Site in any manner that violates any applicable federal, state, local, or international law or regulation;</li>
+        <li>use the Site for any fraudulent, deceptive, or misleading purpose, or to impersonate the Company, any member of our team, or any other person or entity, or misrepresent your affiliation with any person or entity;</li>
+        <li>copy, reproduce, modify, translate, create derivative works from, publicly display, republish, distribute, sell, license, or otherwise exploit any Content, except as expressly permitted by these Terms;</li>
+        <li>use any robot, spider, scraper, crawler, data-mining tool, or other automated means to access, collect, harvest, or index the Site or its Content, including for the purpose of training any machine learning or artificial intelligence model, without our prior written consent;</li>
+        <li>decompile, disassemble, reverse engineer, or otherwise attempt to derive the source code of any portion of the Site, except to the extent such restriction is prohibited by applicable law;</li>
+        <li>gain or attempt to gain unauthorized access to the Site, the servers on which it is hosted, or any server, computer, or database connected to the Site;</li>
+        <li>introduce any virus, Trojan horse, worm, logic bomb, or other material that is malicious or technologically harmful;</li>
+        <li>attack the Site through a denial-of-service attack, distributed denial-of-service attack, or any other means that could disable, overburden, damage, or impair the Site;</li>
+        <li>circumvent, disable, or otherwise interfere with any security-related feature of the Site;</li>
+        <li>use the Site or its browser-based tools to process, create, or distribute any material that is unlawful, defamatory, obscene, harassing, infringing, or that you do not have the right to use;</li>
+        <li>frame or mirror any portion of the Site, or link to the Site in a manner that suggests any form of association, approval, or endorsement by the Company that does not exist; or</li>
+        <li>use the Site to send unsolicited commercial communications or for any other purpose not expressly permitted by these Terms.</li>
+      </ol>
+
+      <h2 id="ip">9. Intellectual Property</h2>
       <p>
-        If any part of these Terms is found unenforceable, the rest remains in effect. Our failure to enforce any
-        provision is not a waiver of it. These Terms are the entire agreement between you and us about the Site,
-        separate from any client agreement for services.
+        The Site and its entire Content, features, and functionality, including but not limited to all
+        information, software, code, text, displays, images, photographs, video, audio, and the design, selection,
+        and arrangement thereof, are owned by the Company, its licensors, or other providers of such material, and
+        are protected by United States and international copyright, trademark, patent, trade secret, and other
+        intellectual property or proprietary rights laws.
+      </p>
+      <p>
+        Photographs and likenesses of members of our team appear on the Site with their permission and may not be
+        copied, reused, or redistributed for any purpose. Work product created for Clients and displayed on the
+        Site is displayed with permission and remains subject to the ownership terms of the applicable Client
+        Agreement.
       </p>
 
-      <h2>15. Contact us</h2>
-      <p>Questions about these Terms? Get in touch:</p>
+      <h2 id="trademarks">10. Trademarks and Third-Party Brands</h2>
+      <p>
+        &ldquo;graceful,&rdquo; &ldquo;The Graceful Company,&rdquo; &ldquo;CommonsWay,&rdquo; and all related names,
+        logos, product and service names, designs, and slogans are trademarks of the Company or its affiliates.
+        You may not use such marks without our prior written permission.
+      </p>
+      <p>
+        All other names, logos, product and service names, designs, and slogans on the Site, including the names
+        of brands with which we have worked, are the trademarks of their respective owners. Their appearance on
+        the Site is for identification purposes only and does not imply any sponsorship, endorsement, or
+        affiliation by those owners with respect to the Site, nor any endorsement by the Company of those owners.
+      </p>
+
+      <h2 id="tools">11. Browser-Based Tools</h2>
+      <p>
+        The Company may make available, free of charge, certain tools on the Site, such as video editing
+        utilities (&ldquo;Tools&rdquo;). The following terms apply to your use of the Tools:
+      </p>
+      <ul>
+        <li>
+          <strong>Local processing.</strong> The Tools operate within your web browser. User Materials you select
+          are processed on your device and are not uploaded to or stored by the Company.
+        </li>
+        <li>
+          <strong>Ownership.</strong> As between you and the Company, you retain all right, title, and interest in
+          and to your User Materials and to any output you generate from them.
+        </li>
+        <li>
+          <strong>Your responsibility.</strong> You represent and warrant that you own or have obtained all rights,
+          licenses, consents, and permissions necessary to use your User Materials with the Tools, including the
+          consent of any identifiable individual depicted in them, and that your use does not infringe or violate
+          the rights of any third party.
+        </li>
+        <li>
+          <strong>No backup.</strong> The Company does not store and cannot recover User Materials or output. You
+          are solely responsible for maintaining copies of your original files and for reviewing any output before
+          use.
+        </li>
+        <li>
+          <strong>Availability.</strong> The Tools are provided &ldquo;as is&rdquo; and may be modified, limited, or
+          discontinued at any time without notice. Results may vary depending on your device, browser, and file
+          format.
+        </li>
+      </ul>
+
+      <h2 id="submissions">12. Submissions and Feedback</h2>
+      <p>
+        If you send us any ideas, suggestions, proposals, feedback, or other materials (other than materials
+        provided under a Client Agreement) (&ldquo;Feedback&rdquo;), you agree that such Feedback is
+        non-confidential and non-proprietary, and you grant the Company a perpetual, irrevocable, worldwide,
+        royalty-free, fully paid-up, sublicensable, and transferable license to use, reproduce, modify, and
+        otherwise exploit such Feedback for any purpose without compensation or attribution to you.
+      </p>
+      <p>
+        Please do not send us confidential or proprietary information unless a written confidentiality agreement
+        is in place between you and the Company.
+      </p>
+
+      <h2 id="results">13. No Guarantee of Results</h2>
+      <p>
+        Statistics, case studies, testimonials, view counts, engagement figures, sales results, and other
+        performance information displayed on the Site describe results achieved for particular Clients under
+        particular circumstances. They are provided for illustrative purposes only, are not typical, and do not
+        constitute a promise or guarantee of any specific outcome. Marketing and advertising results depend on many
+        factors outside the Company&rsquo;s control, including platform algorithms, market conditions, product
+        quality, budget, and audience behavior. Nothing on the Site constitutes legal, financial, tax, or
+        investment advice.
+      </p>
+
+      <h2 id="third-party">14. Third-Party Links and Services</h2>
+      <p>
+        The Site may contain links to, or rely on, websites, platforms, and services operated by third parties,
+        including social media platforms, hosting providers, and font providers. These links and services are
+        provided for your convenience only. The Company does not control, endorse, or assume any responsibility
+        for the content, privacy policies, or practices of any third party. Your access to and use of any
+        third-party website or service is at your own risk and is subject to the terms and policies of that third
+        party.
+      </p>
+
+      <h2 id="copyright">15. Copyright Complaints</h2>
+      <p>
+        The Company respects the intellectual property rights of others. If you believe that any Content on the
+        Site infringes your copyright, you may submit a written notice pursuant to the Digital Millennium Copyright
+        Act, 17 U.S.C. &sect;&nbsp;512, to <a class="inline" href="mailto:hi@thegracefulcompany.com">hi@thegracefulcompany.com</a>
+        with the subject line &ldquo;Copyright Notice.&rdquo; Your notice must include:
+      </p>
+      <ol>
+        <li>a physical or electronic signature of the copyright owner or a person authorized to act on the owner&rsquo;s behalf;</li>
+        <li>identification of the copyrighted work claimed to have been infringed;</li>
+        <li>identification of the material claimed to be infringing and information reasonably sufficient to permit us to locate it on the Site;</li>
+        <li>your name, address, telephone number, and email address;</li>
+        <li>a statement that you have a good-faith belief that use of the material in the manner complained of is not authorized by the copyright owner, its agent, or the law; and</li>
+        <li>a statement that the information in the notice is accurate and, under penalty of perjury, that you are authorized to act on behalf of the copyright owner.</li>
+      </ol>
+      <p>
+        We may remove or disable access to allegedly infringing material in our sole discretion. Knowingly
+        submitting a false notice may expose you to liability for damages.
+      </p>
+
+      <h2 id="privacy">16. Privacy</h2>
+      <p>
+        Your use of the Site is subject to our <a class="inline" href="../privacy/">Privacy Policy</a>, which
+        describes how we collect, use, and disclose Personal Information and is incorporated into these Terms by
+        reference. By using the Site, you acknowledge the practices described in the Privacy Policy.
+      </p>
+
+      <h2 id="disclaimers">17. Disclaimer of Warranties</h2>
+      <p class="caps">
+        To the fullest extent permitted by applicable law, the Site, the Content, and the Tools are provided on an
+        &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis, without warranties of any kind, whether express,
+        implied, or statutory. The Company expressly disclaims all warranties, including but not limited to any
+        implied warranties of merchantability, fitness for a particular purpose, title, non-infringement,
+        accuracy, and quiet enjoyment, and any warranties arising from course of dealing or usage of trade.
+      </p>
+      <p class="caps">
+        Without limiting the foregoing, the Company does not warrant that the Site or the Tools will be
+        uninterrupted, timely, secure, or error-free; that defects will be corrected; that the Site or the servers
+        that make it available are free of viruses or other harmful components; or that any Content is accurate,
+        complete, reliable, or current. Any material downloaded or otherwise obtained through the Site is obtained
+        at your own discretion and risk.
+      </p>
+      <p>
+        Some jurisdictions do not allow the exclusion of certain warranties, so some of the above exclusions may not
+        apply to you.
+      </p>
+
+      <h2 id="liability">18. Limitation of Liability</h2>
+      <p class="caps">
+        To the fullest extent permitted by applicable law, in no event shall the Company or its owners, officers,
+        directors, employees, contractors, agents, affiliates, licensors, or service providers (the &ldquo;Company
+        Parties&rdquo;) be liable for any indirect, incidental, special, consequential, exemplary, or punitive
+        damages, or for any loss of profits, revenue, business, goodwill, or data, or the cost of substitute goods
+        or services, arising out of or in connection with these Terms or your access to, use of, or inability to
+        use the Site, the Content, or the Tools, whether based on warranty, contract, tort (including negligence),
+        strict liability, or any other legal theory, and whether or not the Company Parties have been advised of
+        the possibility of such damages.
+      </p>
+      <p class="caps">
+        To the fullest extent permitted by applicable law, the aggregate liability of the Company Parties for all
+        claims arising out of or relating to these Terms or the Site shall not exceed one hundred United States
+        dollars (US&nbsp;$100.00).
+      </p>
+      <p>
+        The limitations in this Section apply even if any remedy fails of its essential purpose. Some jurisdictions
+        do not allow the exclusion or limitation of certain damages, so some of the above limitations may not
+        apply to you. Nothing in these Terms limits liability that cannot be limited under applicable law. This
+        Section does not govern liability under a Client Agreement, which is governed by the terms of that Client
+        Agreement.
+      </p>
+
+      <h2 id="indemnification">19. Indemnification</h2>
+      <p>
+        You agree to defend, indemnify, and hold harmless the Company Parties from and against any and all claims,
+        demands, actions, liabilities, damages, judgments, losses, costs, and expenses (including reasonable
+        attorneys&rsquo; fees and costs) arising out of or relating to: (a) your access to or use of the Site or
+        the Tools; (b) your User Materials or Feedback; (c) your violation of these Terms; or (d) your violation of
+        any applicable law or the rights of any third party. The Company reserves the right, at your expense, to
+        assume the exclusive defense and control of any matter for which you are required to indemnify us, and you
+        agree to cooperate with our defense of such claims.
+      </p>
+
+      <h2 id="law">20. Governing Law and Venue</h2>
+      <p>
+        These Terms and any dispute or claim arising out of or relating to them or the Site, including
+        non-contractual disputes or claims, shall be governed by and construed in accordance with the laws of the
+        United States and of the State in which the Company maintains its principal place of business, without
+        giving effect to any choice-of-law or conflict-of-law rules. The United Nations Convention on Contracts for
+        the International Sale of Goods does not apply to these Terms.
+      </p>
+      <p>
+        Subject to Section&nbsp;21, any legal action or proceeding arising out of or relating to these Terms or the
+        Site shall be brought exclusively in the state or federal courts located in the county in which the
+        Company maintains its principal place of business, and you irrevocably consent to the personal
+        jurisdiction of and venue in such courts.
+      </p>
+
+      <h2 id="arbitration">21. Dispute Resolution and Arbitration</h2>
+      <p class="caps">
+        Please read this Section carefully. It requires you to arbitrate disputes with the Company on an individual
+        basis and limits the manner in which you can seek relief from us.
+      </p>
+      <h3>21.1 Informal Resolution</h3>
+      <p>
+        Before initiating any arbitration or court proceeding, you and the Company agree to first attempt to
+        resolve any dispute informally. The party asserting a dispute shall send the other a written notice
+        describing the nature and basis of the dispute and the relief sought. Notices to the Company must be sent
+        to <a class="inline" href="mailto:hi@thegracefulcompany.com">hi@thegracefulcompany.com</a> with the subject
+        line &ldquo;Notice of Dispute.&rdquo; If the dispute is not resolved within sixty (60) days after the notice
+        is received, either party may commence proceedings as provided below.
+      </p>
+      <h3>21.2 Binding Arbitration</h3>
+      <p>
+        Except as provided in Section&nbsp;21.4, any dispute, claim, or controversy arising out of or relating to
+        these Terms or the Site, including the formation, interpretation, scope, or enforceability of this
+        Section, shall be resolved by final and binding arbitration administered by the American Arbitration
+        Association (&ldquo;AAA&rdquo;) under its Consumer Arbitration Rules or Commercial Arbitration Rules, as
+        applicable, then in effect. The arbitration shall be conducted by a single arbitrator, in English, and,
+        unless the parties agree otherwise, may be conducted by videoconference or on the written submissions. The
+        arbitrator&rsquo;s award shall be final and binding, and judgment on the award may be entered in any court
+        of competent jurisdiction. This Section is governed by the Federal Arbitration Act, 9 U.S.C. &sect;&nbsp;1
+        et seq.
+      </p>
+      <h3>21.3 Class Action Waiver</h3>
+      <p class="caps">
+        You and the Company agree that each may bring claims against the other only in an individual capacity and
+        not as a plaintiff or class member in any purported class, collective, consolidated, or representative
+        proceeding. The arbitrator may not consolidate more than one person&rsquo;s claims and may not preside over
+        any form of representative or class proceeding. If this class action waiver is found unenforceable with
+        respect to any claim, that claim shall be severed and proceed in court, and not in arbitration.
+      </p>
+      <h3>21.4 Exceptions</h3>
+      <p>
+        Notwithstanding the foregoing, either party may (a) bring an individual action in small claims court for
+        disputes within that court&rsquo;s jurisdiction, and (b) seek injunctive or other equitable relief in a
+        court of competent jurisdiction to prevent the actual or threatened infringement, misappropriation, or
+        violation of intellectual property rights.
+      </p>
+      <h3>21.5 Right to Opt Out</h3>
+      <p>
+        You may opt out of this agreement to arbitrate by sending written notice of your decision to
+        <a class="inline" href="mailto:hi@thegracefulcompany.com">hi@thegracefulcompany.com</a> with the subject
+        line &ldquo;Arbitration Opt-Out&rdquo; within thirty (30) days after you first access the Site following the
+        Effective Date. Your notice must include your name and email address. If you opt out, Section&nbsp;20 will
+        govern all disputes.
+      </p>
+      <h3>21.6 Client Agreements</h3>
+      <p>
+        This Section does not apply to disputes arising under a Client Agreement, which shall be resolved as
+        provided in that Client Agreement.
+      </p>
+
+      <h2 id="termination">22. Suspension and Termination</h2>
+      <p>
+        The Company may, in its sole discretion and without notice or liability, suspend, restrict, or terminate
+        your access to all or any part of the Site, for any reason or no reason, including if we believe you have
+        violated these Terms. We may also modify, suspend, or discontinue the Site or any Tool, in whole or in part,
+        at any time. Upon termination, the license granted to you in Section&nbsp;7 immediately ends. Sections
+        that by their nature should survive termination, including Sections 9 through 13 and 15 through 24, shall
+        survive.
+      </p>
+
+      <h2 id="electronic">23. Electronic Communications</h2>
+      <p>
+        When you visit the Site or send emails to us, you are communicating with us electronically. You consent to
+        receive communications from us electronically and agree that all agreements, notices, disclosures, and other
+        communications that we provide to you electronically satisfy any legal requirement that such communications
+        be in writing. Text messages sent under the CommonsWay name are governed by Section&nbsp;3.
+      </p>
+
+      <h2 id="general">24. General Provisions</h2>
+      <ul>
+        <li>
+          <strong>Entire agreement.</strong> These Terms, together with the Privacy Policy and, where applicable,
+          the CommonsWay Terms of Service, constitute the entire agreement between you and the Company with respect
+          to the Site and supersede all prior and contemporaneous understandings regarding that subject matter.
+          These Terms do not supersede any Client Agreement.
+        </li>
+        <li>
+          <strong>Severability.</strong> If any provision of these Terms is held invalid, illegal, or unenforceable,
+          that provision shall be enforced to the maximum extent permissible, and the remaining provisions shall
+          continue in full force and effect.
+        </li>
+        <li>
+          <strong>No waiver.</strong> No failure or delay by the Company in exercising any right or provision of
+          these Terms shall operate as a waiver of that right or provision.
+        </li>
+        <li>
+          <strong>Assignment.</strong> You may not assign or transfer these Terms, or any rights or obligations
+          under them, without our prior written consent. The Company may freely assign or transfer these Terms
+          without restriction. Any attempted assignment in violation of this provision is void.
+        </li>
+        <li>
+          <strong>Force majeure.</strong> The Company shall not be liable for any failure or delay in performance
+          resulting from causes beyond its reasonable control, including acts of God, natural disasters, pandemics,
+          war, terrorism, civil unrest, labor disputes, governmental action, utility or internet failures, or failures
+          of third-party hosting or service providers.
+        </li>
+        <li>
+          <strong>Relationship of the parties.</strong> Nothing in these Terms creates any partnership, joint
+          venture, agency, fiduciary, or employment relationship between you and the Company.
+        </li>
+        <li>
+          <strong>Export controls.</strong> You agree to comply with all applicable export control and economic
+          sanctions laws in connection with your use of the Site.
+        </li>
+        <li>
+          <strong>Headings and interpretation.</strong> Section headings are for convenience only and have no legal
+          or contractual effect. The words &ldquo;including&rdquo; and &ldquo;include&rdquo; mean &ldquo;including
+          without limitation.&rdquo;
+        </li>
+        <li>
+          <strong>Notices.</strong> We may provide notices to you by posting them on the Site or by email to the
+          address you have provided. Notices to the Company must be sent by email to the address in
+          Section&nbsp;25, unless otherwise specified in these Terms.
+        </li>
+      </ul>
+
+      <h2 id="contact">25. Contact Us</h2>
+      <p>If you have any questions about these Terms, please contact us:</p>
       <div class="contact-card">
         <p><strong>The Graceful Company</strong><br />
-        Email: <a class="inline" href="mailto:hi@thegracefulcompany.com">hi@thegracefulcompany.com</a></p>
+        Attn: Legal<br />
+        Email: <a class="inline" href="mailto:hi@thegracefulcompany.com">hi@thegracefulcompany.com</a><br />
+        Website: <a class="inline" href="https://www.thegracefulcompany.com">thegracefulcompany.com</a></p>
+        <p><strong>CommonsWay</strong> (a d/b/a of The Graceful Company)<br />
+        Email: <a class="inline" href="mailto:support@commonsway.com">support@commonsway.com</a><br />
+        Terms of Service: <a class="inline" href="https://commonsway.com/terms" target="_blank" rel="noopener">commonsway.com/terms</a></p>
       </div>
     </article>
-</main>
+  </main>
 
   <!-- FOOTER -->
   <footer>

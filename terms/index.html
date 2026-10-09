@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terms &amp; Conditions — graceful</title>
+  <meta name="description" content="The terms that govern your use of thegracefulcompany.com." />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../Logo/favicon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../Logo/apple-touch-icon.png" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #050505;
+      --surface: #111113;
+      --border: rgba(255,255,255,0.06);
+      --border-light: rgba(255,255,255,0.12);
+      --text: #f5f5f7;
+      --text-muted: #8e8e93;
+      --text-dim: #636366;
+      --white: #ffffff;
+      --accent: #c8a2ff;
+      --accent-2: #9d6eff;
+      --teal: #64ffda;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::selection { background: var(--accent-2); color: white; }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 1300px; margin: 0 auto; padding: 0 clamp(1.5rem, 4vw, 3rem); }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 1000;
+      padding: 0.8rem 0;
+      background: rgba(5, 5, 5, 0.75);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+    }
+    nav .container { display: flex; justify-content: space-between; align-items: center; }
+    .logo img { height: 48px; width: auto; display: block; }
+    .nav-cta {
+      padding: 0.6rem 1.6rem; border-radius: 100px;
+      background: var(--white); color: var(--bg);
+      font-weight: 600; font-size: 0.85rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nav-cta:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,255,255,0.15); }
+
+    /* ── LEGAL ── */
+    .legal { max-width: 760px; margin: 0 auto; padding: clamp(3rem, 8vw, 6rem) 0; }
+    .section-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 1.5rem;
+    }
+    .legal h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 900; line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+    .legal .updated { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 3rem; }
+    .legal h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem; font-weight: 400;
+      margin: 2.75rem 0 1rem;
+      color: var(--white);
+    }
+    .legal h3 { font-size: 1rem; font-weight: 600; color: var(--white); margin: 1.5rem 0 0.5rem; }
+    .legal p, .legal li { color: var(--text-muted); font-size: 1rem; }
+    .legal p + p { margin-top: 1rem; }
+    .legal ul { margin: 1rem 0 1rem 1.25rem; }
+    .legal li + li { margin-top: 0.5rem; }
+    .legal strong { color: var(--text); font-weight: 600; }
+    .legal a.inline {
+      color: var(--accent);
+      text-decoration: underline;
+      text-decoration-color: rgba(200, 162, 255, 0.4);
+      text-underline-offset: 3px;
+    }
+    .legal a.inline:hover { text-decoration-color: var(--accent); }
+    .legal .contact-card {
+      margin-top: 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 4rem 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .footer-logo { margin-bottom: 1.5rem; display: inline-flex; }
+    .footer-logo img { height: 48px; width: auto; }
+    .footer-links {
+      display: flex; justify-content: center; gap: 2rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .footer-links a { font-size: 0.85rem; color: var(--text-dim); transition: color 0.3s; }
+    .footer-links a:hover { color: var(--white); }
+    .footer-copy { font-size: 0.8rem; color: var(--text-dim); }
+
+    @media (max-width: 480px) {
+      .logo img { height: 40px; }
+      .nav-cta { padding: 0.45rem 1rem; font-size: 0.75rem; }
+      .legal h2 { font-size: 1.3rem; }
+      footer { padding: 2.5rem 0; }
+      .footer-logo img { height: 36px; }
+      .footer-links { gap: 0.8rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="container">
+      <a href="../" class="logo"><img src="../Logo/graceful-w.png.webp" alt="graceful" /></a>
+      <a href="mailto:hi@thegracefulcompany.com" class="nav-cta">Get in Touch</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <article class="legal">
+      <div class="section-label">Legal</div>
+      <h1>Terms &amp; Conditions</h1>
+      <p class="updated">Last updated: October 9, 2026</p>
+
+      <p>
+        These Terms &amp; Conditions (&ldquo;Terms&rdquo;) govern your access to and use of
+        <strong>thegracefulcompany.com</strong> and any tools or content available on it (together, the
+        &ldquo;Site&rdquo;), operated by The Graceful Company (&ldquo;graceful,&rdquo; &ldquo;we,&rdquo;
+        &ldquo;us,&rdquo; or &ldquo;our&rdquo;). By using the Site, you agree to these Terms. If you do not
+        agree, please do not use the Site.
+      </p>
+
+      <h2>1. Our services</h2>
+      <p>
+        The Site provides information about graceful and the marketing, content, and growth services we offer.
+        Nothing on the Site is an offer to provide services on specific terms. Any client engagement is governed
+        by a separate written agreement, proposal, or statement of work between you and us. If that agreement
+        conflicts with these Terms, the agreement controls for that engagement.
+      </p>
+
+      <h2>2. Eligibility</h2>
+      <p>
+        You must be at least 18 years old, or the age of majority where you live, to use the Site. If you use
+        the Site on behalf of a company or other organization, you represent that you have authority to accept
+        these Terms on its behalf.
+      </p>
+
+      <h2>3. Acceptable use</h2>
+      <p>You agree not to:</p>
+      <ul>
+        <li>Use the Site for any unlawful, fraudulent, or harmful purpose;</li>
+        <li>Attempt to gain unauthorized access to the Site, its servers, or any connected systems;</li>
+        <li>Interfere with or disrupt the Site, including by introducing viruses or malicious code;</li>
+        <li>Scrape, copy, or harvest content or data from the Site by automated means without our permission;</li>
+        <li>Impersonate graceful, our team members, or any other person or entity;</li>
+        <li>Use any tool on the Site to process content you do not have the right to use.</li>
+      </ul>
+
+      <h2>4. Intellectual property</h2>
+      <p>
+        The Site and its content, including text, graphics, logos, photos, videos, and code, are owned by
+        graceful or our licensors and are protected by copyright, trademark, and other laws. You may view the
+        Site for your personal, non-commercial use. You may not copy, modify, distribute, sell, or create
+        derivative works from any part of the Site without our prior written permission.
+      </p>
+      <p>
+        The &ldquo;graceful&rdquo; name and logo are our trademarks. Other brand names shown on the Site belong
+        to their respective owners and are used only to identify brands we have worked with. Their appearance
+        does not imply endorsement of the Site.
+      </p>
+
+      <h2>5. Browser-based tools</h2>
+      <p>
+        We may offer free tools on the Site, such as video editing utilities, that run inside your browser.
+        You keep all rights to the files you use with these tools, and you are responsible for having the
+        rights to use them. These tools are provided for convenience, &ldquo;as is,&rdquo; with no guarantee of
+        results. Please keep your own copies of any original files.
+      </p>
+
+      <h2>6. Your submissions</h2>
+      <p>
+        If you send us ideas, feedback, or suggestions, you agree that we may use them without obligation to you.
+        Please do not send us confidential information unless we have a written confidentiality agreement in place.
+      </p>
+
+      <h2>7. Third-party links</h2>
+      <p>
+        The Site may contain links to third-party websites or services. We do not control them and are not
+        responsible for their content, policies, or practices. Accessing them is at your own risk.
+      </p>
+
+      <h2>8. Disclaimer of warranties</h2>
+      <p>
+        The Site is provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. To the fullest extent
+        permitted by law, we disclaim all warranties, express or implied, including warranties of merchantability,
+        fitness for a particular purpose, and non-infringement. We do not warrant that the Site will be
+        uninterrupted, error-free, or free of harmful components. Results and statistics described on the Site
+        reflect past work and do not guarantee future results.
+      </p>
+
+      <h2>9. Limitation of liability</h2>
+      <p>
+        To the fullest extent permitted by law, graceful and its owners, employees, and contractors will not be
+        liable for any indirect, incidental, special, consequential, or punitive damages, or for any loss of
+        profits, revenue, data, or goodwill, arising from or related to your use of the Site. Our total liability
+        for any claim relating to the Site will not exceed one hundred U.S. dollars (US $100).
+      </p>
+      <p>
+        Some jurisdictions do not allow certain warranty exclusions or liability limits, so some of the above
+        may not apply to you.
+      </p>
+
+      <h2>10. Indemnification</h2>
+      <p>
+        You agree to defend, indemnify, and hold harmless graceful and its owners, employees, and contractors from
+        any claims, losses, liabilities, and expenses (including reasonable attorneys&rsquo; fees) arising from
+        your misuse of the Site or your violation of these Terms.
+      </p>
+
+      <h2>11. Privacy</h2>
+      <p>
+        Our <a class="inline" href="../privacy/">Privacy Policy</a> explains how we collect and use information
+        when you use the Site. It is part of these Terms.
+      </p>
+
+      <h2>12. Governing law</h2>
+      <p>
+        These Terms are governed by the laws of the United States and the state in which The Graceful Company
+        has its principal place of business, without regard to conflict-of-law rules. Any dispute arising from
+        these Terms or the Site will be resolved in the state or federal courts located there, and you consent
+        to their jurisdiction.
+      </p>
+
+      <h2>13. Changes to these Terms</h2>
+      <p>
+        We may update these Terms from time to time. When we do, we will change the &ldquo;Last updated&rdquo;
+        date at the top of this page. Continued use of the Site after changes are posted means you accept the
+        updated Terms.
+      </p>
+
+      <h2>14. General</h2>
+      <p>
+        If any part of these Terms is found unenforceable, the rest remains in effect. Our failure to enforce any
+        provision is not a waiver of it. These Terms are the entire agreement between you and us about the Site,
+        separate from any client agreement for services.
+      </p>
+
+      <h2>15. Contact us</h2>
+      <p>Questions about these Terms? Get in touch:</p>
+      <div class="contact-card">
+        <p><strong>The Graceful Company</strong><br />
+        Email: <a class="inline" href="mailto:hi@thegracefulcompany.com">hi@thegracefulcompany.com</a></p>
+      </div>
+    </article>
+</main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-logo"><a href="../"><img src="../Logo/graceful-w.png.webp" alt="graceful" /></a></div>
+      <div class="footer-links">
+        <a href="../privacy/">Privacy Policy</a>
+        <a href="../terms/">Terms &amp; Conditions</a>
+        <a href="mailto:hi@thegracefulcompany.com">Contact</a>
+      </div>
+      <div class="footer-copy">&copy; 2026 The Graceful Company. All rights reserved.</div>
+    </div>
+  </footer>
+
+</body>
+</html>

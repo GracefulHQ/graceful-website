@@ -100,6 +100,44 @@
       padding: 1.5rem;
     }
 
+    .legal ol { margin: 1rem 0 1rem 1.25rem; }
+    .legal ol li + li { margin-top: 0.5rem; }
+    .legal .caps { text-transform: uppercase; font-size: 0.92rem; letter-spacing: 0.01em; }
+    .legal .toc {
+      margin: 2.5rem 0 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem 1.75rem;
+    }
+    .legal .toc-title {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-dim);
+      margin-bottom: 0.75rem;
+    }
+    .legal .toc ol { margin: 0 0 0 1.25rem; columns: 2; column-gap: 2rem; }
+    .legal .toc li { font-size: 0.9rem; margin: 0 0 0.35rem; break-inside: avoid; }
+    .legal .toc li + li { margin-top: 0; }
+    .legal .toc a { color: var(--text-muted); transition: color 0.2s; }
+    .legal .toc a:hover { color: var(--white); }
+    .legal h2 { scroll-margin-top: 6rem; }
+    .legal .callout {
+      margin: 1.25rem 0;
+      border-left: 3px solid var(--accent);
+      background: rgba(200, 162, 255, 0.05);
+      border-radius: 0 12px 12px 0;
+      padding: 1.25rem 1.5rem;
+    }
+    .legal .table-wrap { overflow-x: auto; margin: 1.25rem 0; }
+    .legal table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .legal th, .legal td {
+      text-align: left; vertical-align: top;
+      padding: 0.75rem 0.9rem;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-muted);
+    }
+    .legal th { color: var(--white); font-weight: 600; background: var(--surface); }
+
     /* ── FOOTER ── */
     footer {
       padding: 4rem 0;
@@ -116,6 +154,10 @@
     .footer-links a { font-size: 0.85rem; color: var(--text-dim); transition: color 0.3s; }
     .footer-links a:hover { color: var(--white); }
     .footer-copy { font-size: 0.8rem; color: var(--text-dim); }
+
+    @media (max-width: 640px) {
+      .legal .toc ol { columns: 1; }
+    }
 
     @media (max-width: 480px) {
       .logo img { height: 40px; }
@@ -141,160 +183,682 @@
     <article class="legal">
       <div class="section-label">Legal</div>
       <h1>Privacy Policy</h1>
-      <p class="updated">Last updated: October 9, 2026</p>
+      <p class="updated">Effective Date: October 9, 2026 &nbsp;&middot;&nbsp; Last Updated: October 9, 2026</p>
 
       <p>
-        The Graceful Company (&ldquo;graceful,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;)
-        respects your privacy. This Privacy Policy explains what information we collect when you visit
-        <strong>thegracefulcompany.com</strong> (the &ldquo;Site&rdquo;) or contact us, how we use it,
-        and the choices you have.
+        This Privacy Policy (this &ldquo;Policy&rdquo;) describes how The Graceful Company, including when doing
+        business as CommonsWay (collectively, the &ldquo;Company,&rdquo; &ldquo;graceful,&rdquo; &ldquo;we,&rdquo;
+        &ldquo;us,&rdquo; or &ldquo;our&rdquo;), collects, uses, discloses, retains, and otherwise processes
+        Personal Information in connection with the website located at <strong>thegracefulcompany.com</strong>,
+        including all subdomains, pages, and browser-based tools made available on it (collectively, the
+        &ldquo;Site&rdquo;), our marketing, content, advertising, and growth services (the &ldquo;Services&rdquo;),
+        and any other interaction you have with us, including by email, telephone, text message, social media, or
+        in person.
       </p>
       <p>
-        By using the Site, you agree to the practices described in this policy. If you do not agree,
-        please do not use the Site.
+        Please read this Policy carefully. By accessing or using the Site or Services, or by otherwise providing
+        Personal Information to us, you acknowledge that you have read and understood this Policy. If you do not
+        agree with this Policy, you should not access or use the Site or Services. This Policy is incorporated into
+        and forms part of our <a class="inline" href="../terms/">Terms &amp; Conditions</a>.
       </p>
 
-      <h2>1. Information we collect</h2>
+      <div class="toc" role="navigation" aria-label="Contents">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#scope">Scope of This Policy</a></li>
+          <li><a href="#definitions">Definitions</a></li>
+          <li><a href="#commonsway">CommonsWay</a></li>
+          <li><a href="#collect">Information We Collect</a></li>
+          <li><a href="#cookies">Cookies and Similar Technologies</a></li>
+          <li><a href="#use">How We Use Information</a></li>
+          <li><a href="#legal-bases">Legal Bases for Processing</a></li>
+          <li><a href="#disclose">How We Disclose Information</a></li>
+          <li><a href="#client-data">Client Data</a></li>
+          <li><a href="#tools">Browser-Based Tools</a></li>
+          <li><a href="#third-party">Third-Party Services and Links</a></li>
+          <li><a href="#retention">Data Retention</a></li>
+          <li><a href="#security">Data Security</a></li>
+          <li><a href="#international">International Data Transfers</a></li>
+          <li><a href="#choices">Your Choices</a></li>
+          <li><a href="#us-rights">U.S. State Privacy Rights</a></li>
+          <li><a href="#eea-rights">EEA, UK, and Swiss Privacy Rights</a></li>
+          <li><a href="#exercise">Exercising Your Rights</a></li>
+          <li><a href="#children">Children&rsquo;s Privacy</a></li>
+          <li><a href="#changes">Changes to This Policy</a></li>
+          <li><a href="#contact">Contact Us</a></li>
+        </ol>
+      </div>
 
-      <h3>Information you give us</h3>
+      <h2 id="scope">1. Scope of This Policy</h2>
       <p>
-        When you email us or otherwise reach out, we receive the information you choose to share,
-        such as your name, email address, company name, phone number, and the contents of your message.
-        If you become a client, we may also collect business contact and billing details needed to
-        provide our services.
+        This Policy applies to Personal Information that the Company collects through the Site, through our
+        business communications, and in the course of marketing, negotiating, and administering the Services.
+        It applies to visitors of the Site, prospective and current clients and their representatives, vendors,
+        creators, affiliates, and other individuals who interact with us.
       </p>
-
-      <h3>Information collected automatically</h3>
-      <p>
-        Like most websites, the servers that host the Site automatically receive basic technical
-        information when you visit, such as your IP address, browser type, device type, referring page,
-        and the date and time of your request. This information is used for security, troubleshooting,
-        and keeping the Site running.
-      </p>
-
-      <h3>Cookies and tracking</h3>
-      <p>
-        The Site does not currently use advertising cookies, analytics trackers, or tracking pixels.
-        If we add them in the future, we will update this policy and, where required by law, ask for
-        your consent first.
-      </p>
-
-      <h3>Files you use with our browser-based tools</h3>
-      <p>
-        Some tools on the Site (for example, video editing utilities) process files entirely inside your
-        web browser. Those files stay on your device and are not uploaded to or stored by us.
-      </p>
-
-      <h2>2. How we use your information</h2>
-      <p>We use the information we collect to:</p>
-      <ul>
-        <li>Respond to your questions and requests;</li>
-        <li>Discuss, provide, and improve our services;</li>
-        <li>Send you information you have asked for, such as proposals or project updates;</li>
-        <li>Operate, secure, and maintain the Site;</li>
-        <li>Comply with legal obligations and enforce our agreements.</li>
-      </ul>
-      <p>
-        We do <strong>not</strong> sell your personal information, and we do not share it for
-        cross-context behavioral advertising.
-      </p>
-
-      <h2>3. How we share information</h2>
-      <p>We share personal information only in limited circumstances:</p>
+      <p>This Policy does not apply to:</p>
       <ul>
         <li>
-          <strong>Service providers.</strong> We use trusted vendors to help us run our business,
-          such as website hosting (GitHub Pages), web font delivery (Google Fonts), and email providers.
-          These providers receive only the information needed to perform their services and may process
-          it under their own privacy policies.
+          Information we process on behalf of our clients in our capacity as a service provider or processor,
+          which is governed by our agreements with those clients and by their own privacy notices (see
+          Section&nbsp;9);
         </li>
         <li>
-          <strong>Legal reasons.</strong> We may disclose information if required by law, subpoena, or
-          other legal process, or if we believe in good faith that disclosure is necessary to protect our
-          rights, your safety, or the safety of others.
+          Information collected by third-party websites, platforms, or services that may link to or be linked
+          from the Site, which are governed by their own privacy policies;
         </li>
         <li>
-          <strong>Business transfers.</strong> If we are involved in a merger, acquisition, or sale of
-          assets, information may be transferred as part of that transaction.
+          Information relating to the Company&rsquo;s own employees and job applicants, which is addressed in
+          separate notices provided to those individuals.
+        </li>
+      </ul>
+      <p>
+        Your use of the CommonsWay platform is additionally governed by the CommonsWay Privacy Policy as
+        described in Section&nbsp;3.
+      </p>
+
+      <h2 id="definitions">2. Definitions</h2>
+      <p>For purposes of this Policy:</p>
+      <ul>
+        <li>
+          <strong>&ldquo;Personal Information&rdquo;</strong> means any information that identifies, relates to,
+          describes, is reasonably capable of being associated with, or could reasonably be linked, directly or
+          indirectly, with a particular individual or household. It includes &ldquo;personal data&rdquo; and
+          &ldquo;personal information&rdquo; as those terms are defined under applicable data protection laws.
+          It does not include de-identified or aggregated information.
         </li>
         <li>
-          <strong>With your consent.</strong> We may share information for any other purpose with your
-          permission.
+          <strong>&ldquo;Processing&rdquo;</strong> means any operation performed on Personal Information,
+          including collection, recording, organization, storage, adaptation, retrieval, use, disclosure,
+          combination, restriction, erasure, or destruction.
+        </li>
+        <li>
+          <strong>&ldquo;Client&rdquo;</strong> means a business or organization that has engaged the Company to
+          provide Services under a written agreement, proposal, or statement of work.
+        </li>
+        <li>
+          <strong>&ldquo;Service Provider&rdquo;</strong> means a third party that processes Personal Information
+          on our behalf and subject to contractual restrictions on its use.
         </li>
       </ul>
 
-      <h2>4. Third-party services and links</h2>
+      <h2 id="commonsway">3. CommonsWay</h2>
       <p>
-        The Site loads fonts from Google Fonts, which means your browser connects to Google&rsquo;s servers
-        and shares your IP address with Google. You can learn more in
-        <a class="inline" href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google&rsquo;s Privacy Policy</a>.
-        The Site is hosted on GitHub Pages; see
-        <a class="inline" href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub&rsquo;s Privacy Statement</a>.
+        The Graceful Company, doing business as CommonsWay, operates the CommonsWay platform. When you use
+        CommonsWay, The Graceful Company collects and processes your information as described in the CommonsWay
+        Privacy Policy at
+        <a class="inline" href="https://commonsway.com/privacy" target="_blank" rel="noopener">commonsway.com/privacy</a>,
+        which is part of this policy.
       </p>
+      <h3>CommonsWay text messages (SMS)</h3>
       <p>
-        The Site may link to other websites. We are not responsible for the privacy practices of those
-        sites, and we encourage you to review their policies.
+        We collect your mobile number and your consent to receive texts when you tick the SMS consent box on a
+        CommonsWay form. We use them only to send the CommonsWay messages you agreed to: sign-in and verification
+        codes, invitations, the opt-in confirmation and account notices.
+      </p>
+      <div class="callout">
+        <p>
+          No mobile information will be shared with third parties or affiliates for marketing or promotional
+          purposes. Text messaging originator opt-in data and consent will not be shared with any third parties.
+          We do not sell or share your SMS opt-in data or personal information with third parties for marketing
+          purposes.
+        </p>
+      </div>
+      <p>
+        You can opt out at any time by replying STOP, or get help by replying HELP or emailing
+        <a class="inline" href="mailto:support@commonsway.com">support@commonsway.com</a>.
       </p>
 
-      <h2>5. Data retention</h2>
+      <h2 id="collect">4. Information We Collect</h2>
       <p>
-        We keep personal information only as long as needed for the purposes described in this policy,
-        such as responding to you or maintaining business and tax records, unless a longer period is
-        required or permitted by law.
+        The categories of Personal Information we collect depend on how you interact with us. We collect
+        Personal Information in the following ways.
       </p>
 
-      <h2>6. Data security</h2>
-      <p>
-        We use reasonable administrative, technical, and physical safeguards to protect personal information.
-        No method of transmission over the internet or electronic storage is completely secure, so we cannot
-        guarantee absolute security.
-      </p>
+      <h3>4.1 Information You Provide Directly</h3>
+      <ul>
+        <li>
+          <strong>Contact and inquiry information:</strong> your name, email address, telephone number, company
+          name, job title, and the content of any message, request, or attachment you send to us.
+        </li>
+        <li>
+          <strong>Business and engagement information:</strong> information you provide when discussing,
+          contracting for, or receiving Services, such as project requirements, brand materials, account
+          credentials or access permissions you elect to grant us for the purpose of performing Services,
+          and correspondence relating to the engagement.
+        </li>
+        <li>
+          <strong>Billing and transaction information:</strong> billing contact details, billing address, tax
+          identification information, and payment records. Payment card details, where applicable, are processed
+          by our third-party payment processors and are not stored by us.
+        </li>
+        <li>
+          <strong>Creator, affiliate, and vendor information:</strong> if you work with us as a content creator,
+          affiliate, contractor, or vendor, your name, contact details, social media handles, portfolio
+          materials, payment and tax information, and the terms of our relationship.
+        </li>
+        <li>
+          <strong>Mobile number and SMS consent:</strong> as described in Section&nbsp;3, when you provide a
+          mobile number and consent on a CommonsWay form.
+        </li>
+        <li>
+          <strong>Feedback and testimonials:</strong> any feedback, reviews, or testimonials you choose to
+          provide, which we will publish only with your permission.
+        </li>
+      </ul>
 
-      <h2>7. Your privacy rights</h2>
+      <h3>4.2 Information Collected Automatically</h3>
       <p>
-        Depending on where you live, you may have the right to:
+        When you visit the Site, our hosting provider and the content delivery networks it uses automatically
+        receive certain technical information transmitted by your browser or device, which may include:
       </p>
       <ul>
-        <li>Know what personal information we hold about you and request a copy;</li>
-        <li>Ask us to correct inaccurate information;</li>
-        <li>Ask us to delete your information;</li>
-        <li>Opt out of marketing emails at any time by using the unsubscribe link or replying to us;</li>
-        <li>Opt out of the &ldquo;sale&rdquo; or &ldquo;sharing&rdquo; of personal information (we do not sell or share it);</li>
-        <li>Not be discriminated against for exercising any of these rights.</li>
+        <li>Internet Protocol (IP) address and approximate location derived from it (such as city or region);</li>
+        <li>Browser type and version, operating system, and device type;</li>
+        <li>Referring and exit pages and the URLs requested;</li>
+        <li>Date, time, and duration of requests; and</li>
+        <li>Error logs and other diagnostic information.</li>
       </ul>
       <p>
-        To make a request, email us at
-        <a class="inline" href="mailto:hi@thegracefulcompany.com">hi@thegracefulcompany.com</a>.
-        We may need to verify your identity before completing your request. You may also use an authorized
-        agent to submit a request on your behalf where the law allows.
+        This information is used to deliver, secure, and maintain the Site. We do not use it to identify you
+        individually, except where necessary to investigate security incidents or misuse.
       </p>
 
-      <h2>8. Children&rsquo;s privacy</h2>
+      <h3>4.3 Information from Third Parties</h3>
+      <p>We may receive Personal Information about you from third-party sources, including:</p>
+      <ul>
+        <li>Our Clients, when they introduce us to you or engage us to work with you;</li>
+        <li>Business partners, agencies, and referral sources;</li>
+        <li>
+          Social media platforms, when you interact with our accounts or content, subject to your settings on
+          those platforms; and
+        </li>
+        <li>Publicly available sources, such as professional networking sites and company websites.</li>
+      </ul>
+
+      <h3>4.4 Sensitive Personal Information</h3>
       <p>
-        The Site is not directed to children under 13, and we do not knowingly collect personal information
-        from children under 13. If you believe a child has provided us with personal information, please
-        contact us and we will delete it.
+        We do not intentionally collect sensitive Personal Information (such as government identification
+        numbers, precise geolocation, health information, biometric data, or information about racial or ethnic
+        origin, religious beliefs, or sexual orientation) through the Site. Please do not send us such
+        information. Where tax identification numbers are required to pay creators, affiliates, or vendors,
+        we collect and use them solely for tax and compliance purposes.
       </p>
 
-      <h2>9. International visitors</h2>
+      <h2 id="cookies">5. Cookies and Similar Technologies</h2>
       <p>
-        We are based in the United States. If you access the Site from outside the United States, your
-        information may be transferred to, stored, and processed in the United States, where data protection
-        laws may differ from those in your country.
+        As of the Effective Date, the Site does not use advertising cookies, third-party analytics, tracking
+        pixels, session replay, or similar tracking technologies. The Site may use technologies that are strictly
+        necessary for its operation and security.
       </p>
-
-      <h2>10. Changes to this policy</h2>
       <p>
-        We may update this Privacy Policy from time to time. When we do, we will change the &ldquo;Last
-        updated&rdquo; date at the top of this page. Continued use of the Site after changes are posted
-        means you accept the updated policy.
+        If we introduce analytics or advertising technologies in the future, we will update this Policy before
+        doing so and, where required by applicable law, obtain your consent and provide an appropriate means to
+        opt out.
+      </p>
+      <p>
+        <strong>Do Not Track and Global Privacy Control.</strong> Because the Site does not engage in
+        cross-context behavioral advertising or the sale of Personal Information, there is no tracking for a
+        Do Not Track signal to disable. Where applicable law requires, we will treat a Global Privacy Control
+        (GPC) signal as a valid request to opt out of the sale or sharing of Personal Information associated
+        with that browser.
       </p>
 
-      <h2>11. Contact us</h2>
-      <p>If you have questions about this Privacy Policy or how we handle your information, contact us:</p>
+      <h2 id="use">6. How We Use Information</h2>
+      <p>We use Personal Information for the following business and commercial purposes:</p>
+      <ol>
+        <li>
+          <strong>Responding to you:</strong> to answer inquiries, provide information you request, and
+          communicate with you about potential engagements.
+        </li>
+        <li>
+          <strong>Providing the Services:</strong> to negotiate, enter into, perform, and administer agreements
+          with Clients, creators, affiliates, and vendors, including project management, reporting, invoicing,
+          and payment.
+        </li>
+        <li>
+          <strong>Operating CommonsWay:</strong> as described in Section&nbsp;3 and in the CommonsWay Privacy
+          Policy.
+        </li>
+        <li>
+          <strong>Operating and securing the Site:</strong> to deliver, maintain, troubleshoot, and protect the
+          Site and our systems, and to detect, prevent, and respond to fraud, abuse, security incidents, and
+          other harmful activity.
+        </li>
+        <li>
+          <strong>Improving our business:</strong> to understand how our Services are received and to develop
+          and improve our offerings, using aggregated or de-identified information where practicable.
+        </li>
+        <li>
+          <strong>Business communications:</strong> to send you transactional and relationship communications by
+          email. Where permitted by law, we may also send you occasional emails about our Services, from which
+          you may unsubscribe at any time.
+        </li>
+        <li>
+          <strong>Legal and compliance:</strong> to comply with applicable laws, regulations, legal process, and
+          governmental requests; to maintain business, accounting, and tax records; and to establish, exercise,
+          or defend legal claims.
+        </li>
+        <li>
+          <strong>Corporate transactions:</strong> in connection with an actual or proposed merger, acquisition,
+          financing, reorganization, or sale of all or part of our business or assets.
+        </li>
+        <li>
+          <strong>With your consent:</strong> for any other purpose disclosed to you at the time of collection or
+          to which you consent.
+        </li>
+      </ol>
+      <p>
+        We will not use Personal Information for purposes materially different from those described in this
+        Policy without providing you notice and, where required by law, obtaining your consent.
+      </p>
+
+      <h2 id="legal-bases">7. Legal Bases for Processing</h2>
+      <p>
+        If you are located in the European Economic Area (&ldquo;EEA&rdquo;), the United Kingdom, or Switzerland,
+        we process your Personal Information only where we have a lawful basis to do so, including:
+      </p>
+      <ul>
+        <li>
+          <strong>Performance of a contract:</strong> where processing is necessary to enter into or perform a
+          contract with you or the organization you represent;
+        </li>
+        <li>
+          <strong>Legitimate interests:</strong> where processing is necessary for our legitimate interests,
+          such as operating and securing the Site, responding to inquiries, and developing our business, provided
+          those interests are not overridden by your rights and interests;
+        </li>
+        <li>
+          <strong>Legal obligation:</strong> where processing is necessary to comply with a legal obligation to
+          which we are subject; and
+        </li>
+        <li>
+          <strong>Consent:</strong> where you have given consent, such as consent to receive text messages. You
+          may withdraw consent at any time without affecting the lawfulness of processing based on consent before
+          its withdrawal.
+        </li>
+      </ul>
+
+      <h2 id="disclose">8. How We Disclose Information</h2>
+      <p>
+        <strong>We do not sell Personal Information, and we do not share Personal Information for cross-context
+        behavioral advertising.</strong> We disclose Personal Information only as described below:
+      </p>
+      <ul>
+        <li>
+          <strong>Service Providers.</strong> We disclose Personal Information to Service Providers that perform
+          services on our behalf, such as website hosting and content delivery, web font delivery, email and
+          communications providers, SMS delivery providers (solely to transmit CommonsWay messages), cloud storage,
+          payment processing, accounting, and professional advisors. Service Providers are contractually
+          restricted from using Personal Information for any purpose other than providing services to us.
+        </li>
+        <li>
+          <strong>Clients.</strong> Where you are a creator, affiliate, or vendor engaged in connection with a
+          Client project, we may disclose relevant information to that Client as necessary to perform the
+          engagement.
+        </li>
+        <li>
+          <strong>Professional advisors.</strong> We may disclose information to our lawyers, accountants,
+          auditors, insurers, and bankers in the course of the professional services they provide to us.
+        </li>
+        <li>
+          <strong>Legal requirements and protection.</strong> We may disclose information where we believe in
+          good faith that disclosure is necessary to comply with applicable law, regulation, subpoena, court
+          order, or other legal process; to respond to lawful requests from public authorities; to enforce our
+          agreements; or to protect the rights, property, or safety of the Company, our Clients, users, or others.
+        </li>
+        <li>
+          <strong>Business transfers.</strong> We may disclose or transfer information in connection with, or
+          during negotiations of, any merger, acquisition, financing, reorganization, bankruptcy, or sale of all
+          or a portion of our business or assets. Any successor will be bound by the commitments in this Policy
+          with respect to previously collected information.
+        </li>
+        <li>
+          <strong>With your consent or at your direction.</strong> We may disclose information to other parties
+          when you consent to or direct the disclosure.
+        </li>
+      </ul>
+      <p>
+        Notwithstanding anything in this Section, mobile information and SMS opt-in data are subject to the
+        restrictions stated in Section&nbsp;3 and are never shared with third parties or affiliates for
+        marketing or promotional purposes.
+      </p>
+
+      <h2 id="client-data">9. Client Data</h2>
+      <p>
+        In performing Services, we may process Personal Information on behalf of our Clients, such as information
+        contained in a Client&rsquo;s email or SMS subscriber lists, customer records, advertising accounts, or
+        social media accounts (&ldquo;Client Data&rdquo;). With respect to Client Data, we act as a service
+        provider, contractor, or processor, and the Client is the business or controller responsible for that
+        information.
+      </p>
+      <p>
+        We process Client Data only on the Client&rsquo;s documented instructions and in accordance with our
+        agreement with that Client. If you are a customer or subscriber of one of our Clients and wish to exercise
+        your privacy rights with respect to Client Data, please contact that Client directly. If you contact us,
+        we will refer your request to the relevant Client and assist the Client as required by our agreement and
+        applicable law.
+      </p>
+
+      <h2 id="tools">10. Browser-Based Tools</h2>
+      <p>
+        The Site may make available tools, such as video editing utilities, that operate entirely within your web
+        browser. Files you select for use with these tools are processed locally on your device and are not
+        uploaded to, transmitted to, or stored by the Company. Because we do not receive these files, we cannot
+        recover them for you. You are responsible for retaining copies of your original files.
+      </p>
+
+      <h2 id="third-party">11. Third-Party Services and Links</h2>
+      <p>
+        The Site relies on certain third-party services that may receive limited technical information directly
+        from your browser:
+      </p>
+      <ul>
+        <li>
+          <strong>Hosting.</strong> The Site is hosted on GitHub Pages, operated by GitHub, Inc. See the
+          <a class="inline" href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub General Privacy Statement</a>.
+        </li>
+        <li>
+          <strong>Web fonts.</strong> The Site loads fonts from Google Fonts, operated by Google LLC, which
+          receives your IP address and browser information when fonts are requested. See the
+          <a class="inline" href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>.
+        </li>
+      </ul>
+      <p>
+        The Site may contain links to third-party websites, platforms, and services, including social media
+        platforms and Client websites. We do not control and are not responsible for the privacy practices of
+        any third party. The inclusion of a link does not imply our endorsement. We encourage you to review the
+        privacy policy of every website you visit.
+      </p>
+
+      <h2 id="retention">12. Data Retention</h2>
+      <p>
+        We retain Personal Information for as long as reasonably necessary to fulfill the purposes for which it
+        was collected, as described in this Policy, unless a longer retention period is required or permitted by
+        law. In determining appropriate retention periods, we consider the amount, nature, and sensitivity of the
+        information; the potential risk of harm from unauthorized use or disclosure; the purposes for which we
+        process it and whether those purposes can be achieved by other means; and applicable legal, tax,
+        accounting, and contractual requirements.
+      </p>
+      <p>By way of example:</p>
+      <ul>
+        <li>General inquiry correspondence is typically retained for up to three (3) years after our last interaction;</li>
+        <li>
+          Contract, invoicing, and payment records are retained for the duration of the relationship and for up
+          to seven (7) years thereafter to satisfy tax and accounting obligations;
+        </li>
+        <li>Server and security logs maintained by our hosting provider are retained in accordance with its policies; and</li>
+        <li>SMS consent records are retained for as long as required to demonstrate consent under applicable law.</li>
+      </ul>
+      <p>
+        When Personal Information is no longer needed, we delete, de-identify, or aggregate it, or, where that is
+        not possible (for example, because it is stored in backup archives), we securely store it and isolate it
+        from further processing until deletion is possible.
+      </p>
+
+      <h2 id="security">13. Data Security</h2>
+      <p>
+        We implement reasonable administrative, technical, and physical safeguards designed to protect Personal
+        Information against accidental, unlawful, or unauthorized access, use, alteration, disclosure, or
+        destruction. These safeguards include encryption of data in transit (HTTPS), access controls that limit
+        Personal Information to personnel and Service Providers with a business need to know, and the use of
+        reputable Service Providers that maintain their own security programs.
+      </p>
+      <p>
+        No method of transmission over the internet or method of electronic storage is completely secure.
+        Accordingly, while we strive to protect Personal Information, we cannot guarantee its absolute security.
+        You are responsible for maintaining the confidentiality of any credentials you use to access our
+        Services. If you believe your interaction with us is no longer secure, please contact us immediately. In
+        the event of a data breach affecting your Personal Information, we will notify you and applicable
+        authorities as required by law.
+      </p>
+
+      <h2 id="international">14. International Data Transfers</h2>
+      <p>
+        The Company is based in the United States, and the Site is hosted in the United States. If you access the
+        Site or communicate with us from outside the United States, your Personal Information will be transferred
+        to, stored, and processed in the United States and other countries where our Service Providers operate.
+        Data protection laws in these countries may differ from, and may be less protective than, the laws of your
+        country of residence.
+      </p>
+      <p>
+        Where we transfer Personal Information from the EEA, the United Kingdom, or Switzerland to a country that
+        has not been found to provide an adequate level of protection, we rely on appropriate safeguards, such as
+        the Standard Contractual Clauses approved by the European Commission (and their UK and Swiss equivalents),
+        or on applicable derogations, such as the necessity of the transfer for the performance of a contract.
+      </p>
+
+      <h2 id="choices">15. Your Choices</h2>
+      <ul>
+        <li>
+          <strong>Email.</strong> You may opt out of non-transactional emails at any time by following the
+          unsubscribe instructions in the email or by contacting us. We may still send you transactional or
+          relationship messages, such as those relating to an active engagement.
+        </li>
+        <li>
+          <strong>Text messages.</strong> You may opt out of CommonsWay text messages at any time by replying
+          STOP, as described in Section&nbsp;3.
+        </li>
+        <li>
+          <strong>Browser settings.</strong> You may configure your browser to block or alert you to cookies and
+          to send a Global Privacy Control signal.
+        </li>
+        <li>
+          <strong>Declining to provide information.</strong> You may choose not to provide Personal Information
+          to us. However, we may then be unable to respond to your request or provide the Services.
+        </li>
+      </ul>
+
+      <h2 id="us-rights">16. U.S. State Privacy Rights</h2>
+      <p>
+        Residents of certain U.S. states, including California, Colorado, Connecticut, Delaware, Iowa, Montana,
+        Nebraska, New Hampshire, New Jersey, Oregon, Texas, Utah, Virginia, and other states with comprehensive
+        privacy laws, may have the rights described in this Section, subject to applicable exceptions and to the
+        extent those laws apply to the Company.
+      </p>
+
+      <h3>16.1 Your Rights</h3>
+      <ul>
+        <li>
+          <strong>Right to know and access:</strong> to confirm whether we process your Personal Information and
+          to request the categories and specific pieces of Personal Information we have collected, the categories
+          of sources, the business or commercial purposes for collection, and the categories of third parties to
+          whom we disclose it;
+        </li>
+        <li><strong>Right to correct:</strong> to request correction of inaccurate Personal Information;</li>
+        <li><strong>Right to delete:</strong> to request deletion of Personal Information we have collected from you;</li>
+        <li>
+          <strong>Right to data portability:</strong> to obtain a copy of your Personal Information in a portable
+          and, to the extent technically feasible, readily usable format;
+        </li>
+        <li>
+          <strong>Right to opt out:</strong> of the sale of Personal Information, the sharing of Personal
+          Information for cross-context behavioral advertising, targeted advertising, and profiling in
+          furtherance of decisions that produce legal or similarly significant effects. We do not engage in
+          these activities;
+        </li>
+        <li>
+          <strong>Right to limit:</strong> the use of sensitive Personal Information. We do not use sensitive
+          Personal Information for purposes requiring an opt-out right;
+        </li>
+        <li>
+          <strong>Right to appeal:</strong> if we decline to take action on your request, to appeal our
+          decision as described in Section&nbsp;18; and
+        </li>
+        <li>
+          <strong>Right to non-discrimination:</strong> not to receive discriminatory treatment for exercising any
+          of these rights.
+        </li>
+      </ul>
+
+      <h3>16.2 California Notice at Collection and Disclosures</h3>
+      <p>
+        The California Consumer Privacy Act, as amended by the California Privacy Rights Act (together, the
+        &ldquo;CCPA&rdquo;), requires us to disclose the following information regarding the preceding twelve
+        (12) months.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Category of Personal Information</th>
+              <th>Examples</th>
+              <th>Disclosed for a business purpose to</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Identifiers</td>
+              <td>Name, email address, telephone number, IP address</td>
+              <td>Service Providers; professional advisors</td>
+            </tr>
+            <tr>
+              <td>Customer records (Cal. Civ. Code &sect; 1798.80(e))</td>
+              <td>Billing address, payment records, tax information</td>
+              <td>Service Providers (payment processors, accountants)</td>
+            </tr>
+            <tr>
+              <td>Commercial information</td>
+              <td>Records of Services discussed, purchased, or provided</td>
+              <td>Service Providers; professional advisors</td>
+            </tr>
+            <tr>
+              <td>Internet or other electronic network activity</td>
+              <td>Browser type, device information, pages requested, server logs</td>
+              <td>Service Providers (hosting and content delivery)</td>
+            </tr>
+            <tr>
+              <td>Geolocation data (approximate)</td>
+              <td>City or region inferred from IP address</td>
+              <td>Service Providers (hosting and content delivery)</td>
+            </tr>
+            <tr>
+              <td>Professional or employment-related information</td>
+              <td>Company name, job title, portfolio materials of creators and vendors</td>
+              <td>Service Providers; Clients (where relevant to an engagement)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        <strong>Sources.</strong> We collect these categories from you directly, automatically from your device,
+        and from the third-party sources described in Section&nbsp;4.3. <strong>Purposes.</strong> We collect and
+        use these categories for the purposes described in Section&nbsp;6. <strong>Retention.</strong> We retain
+        each category for the periods described in Section&nbsp;12.
+      </p>
+      <p>
+        <strong>No sale or sharing.</strong> We have not sold or shared (as those terms are defined in the CCPA)
+        Personal Information in the preceding twelve (12) months, and we have no actual knowledge of selling or
+        sharing the Personal Information of consumers under sixteen (16) years of age.
+      </p>
+      <p>
+        <strong>Shine the Light.</strong> California Civil Code &sect;&nbsp;1798.83 permits California residents
+        to request certain information regarding our disclosure of Personal Information to third parties for
+        their direct marketing purposes. We do not disclose Personal Information to third parties for their direct
+        marketing purposes.
+      </p>
+
+      <h3>16.3 Nevada Residents</h3>
+      <p>
+        Nevada residents may submit a request directing us not to sell certain covered information. We do not
+        sell covered information as defined under Nevada law, but you may submit a request using the contact
+        information in Section&nbsp;21.
+      </p>
+
+      <h2 id="eea-rights">17. EEA, UK, and Swiss Privacy Rights</h2>
+      <p>
+        If you are located in the EEA, the United Kingdom, or Switzerland, you have the following rights with
+        respect to your Personal Information, subject to applicable conditions and exceptions:
+      </p>
+      <ul>
+        <li>The right of access to your Personal Information;</li>
+        <li>The right to rectification of inaccurate or incomplete Personal Information;</li>
+        <li>The right to erasure (&ldquo;right to be forgotten&rdquo;);</li>
+        <li>The right to restriction of processing;</li>
+        <li>The right to data portability;</li>
+        <li>
+          The right to object to processing based on legitimate interests, and the absolute right to object to
+          processing for direct marketing;
+        </li>
+        <li>The right to withdraw consent at any time, where processing is based on consent; and</li>
+        <li>
+          The right to lodge a complaint with the data protection supervisory authority in your country of
+          residence, place of work, or place of an alleged infringement.
+        </li>
+      </ul>
+      <p>We do not engage in automated decision-making that produces legal or similarly significant effects on you.</p>
+
+      <h2 id="exercise">18. Exercising Your Rights</h2>
+      <p>
+        To exercise any of the rights described in this Policy, please email us at
+        <a class="inline" href="mailto:hi@thegracefulcompany.com">hi@thegracefulcompany.com</a> with the subject
+        line &ldquo;Privacy Request,&rdquo; and describe the nature of your request. For requests relating to the
+        CommonsWay platform, you may also contact
+        <a class="inline" href="mailto:support@commonsway.com">support@commonsway.com</a>.
+      </p>
+      <ul>
+        <li>
+          <strong>Verification.</strong> To protect your Personal Information, we will take reasonable steps to
+          verify your identity before fulfilling your request, which may include asking you to confirm information
+          we already hold. The verification required will depend on the nature and sensitivity of the request.
+        </li>
+        <li>
+          <strong>Authorized agents.</strong> Where permitted by law, you may designate an authorized agent to
+          submit a request on your behalf. We may require written proof of the agent&rsquo;s authority and may
+          require you to verify your identity directly with us.
+        </li>
+        <li>
+          <strong>Response timing.</strong> We will respond within the time required by applicable law, which is
+          generally forty-five (45) days for U.S. state privacy requests and one (1) month for requests under EEA
+          and UK law. Where permitted, we may extend this period once by an additional period and will notify you
+          of the extension and the reason for it.
+        </li>
+        <li>
+          <strong>Appeals.</strong> If we decline to take action on your request, you may appeal our decision by
+          replying to our response with the subject line &ldquo;Privacy Request Appeal.&rdquo; We will respond to
+          your appeal within the time required by applicable law. If your appeal is denied, you may contact the
+          Attorney General or data protection authority of your jurisdiction.
+        </li>
+        <li>
+          <strong>Fees.</strong> We do not charge a fee to process your request unless it is manifestly unfounded,
+          excessive, or repetitive, in which case we may charge a reasonable fee or decline the request, as
+          permitted by law.
+        </li>
+      </ul>
+
+      <h2 id="children">19. Children&rsquo;s Privacy</h2>
+      <p>
+        The Site and Services are intended for businesses and adults. They are not directed to children under the
+        age of thirteen (13), or under the age of sixteen (16) in jurisdictions where a higher age applies, and we
+        do not knowingly collect Personal Information from such children. If we learn that we have collected
+        Personal Information from a child without verifiable parental consent where such consent is required, we
+        will delete that information promptly. If you believe a child has provided us with Personal Information,
+        please contact us using the information below.
+      </p>
+
+      <h2 id="changes">20. Changes to This Policy</h2>
+      <p>
+        We may update this Policy from time to time to reflect changes in our practices, technologies, legal
+        requirements, or other factors. When we do, we will revise the &ldquo;Last Updated&rdquo; date at the top
+        of this Policy. If we make material changes, we will provide additional notice as appropriate, such as by
+        posting a prominent notice on the Site or by notifying you by email. Your continued use of the Site or
+        Services after an updated Policy becomes effective constitutes your acknowledgment of the updated Policy.
+        We encourage you to review this Policy periodically.
+      </p>
+
+      <h2 id="contact">21. Contact Us</h2>
+      <p>
+        If you have any questions, concerns, or complaints regarding this Policy or our privacy practices, or if
+        you wish to exercise your rights, please contact us:
+      </p>
       <div class="contact-card">
         <p><strong>The Graceful Company</strong><br />
-        Email: <a class="inline" href="mailto:hi@thegracefulcompany.com">hi@thegracefulcompany.com</a></p>
+        Attn: Privacy<br />
+        Email: <a class="inline" href="mailto:hi@thegracefulcompany.com">hi@thegracefulcompany.com</a><br />
+        Website: <a class="inline" href="https://www.thegracefulcompany.com">thegracefulcompany.com</a></p>
+        <p><strong>CommonsWay</strong> (a d/b/a of The Graceful Company)<br />
+        Email: <a class="inline" href="mailto:support@commonsway.com">support@commonsway.com</a><br />
+        Privacy Policy: <a class="inline" href="https://commonsway.com/privacy" target="_blank" rel="noopener">commonsway.com/privacy</a></p>
       </div>
     </article>
   </main>

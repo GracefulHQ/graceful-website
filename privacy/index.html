@@ -120,7 +120,8 @@
     .legal .toc li + li { margin-top: 0; }
     .legal .toc a { color: var(--text-muted); transition: color 0.2s; }
     .legal .toc a:hover { color: var(--white); }
-    .legal h2 { scroll-margin-top: 6rem; }
+    .legal h2, .legal h3 { scroll-margin-top: 6rem; }
+    .legal a[href^="tel:"] { white-space: nowrap; }
     .legal .callout {
       margin: 1.25rem 0;
       border-left: 3px solid var(--accent);
@@ -137,6 +138,22 @@
       color: var(--text-muted);
     }
     .legal th { color: var(--white); font-weight: 600; background: var(--surface); }
+
+    .legal a.break { overflow-wrap: anywhere; }
+    .legal .consent-box {
+      display: flex; gap: 0.9rem; align-items: flex-start;
+      margin: 1.25rem 0;
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      padding: 1.25rem 1.4rem;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    .legal .consent-box input {
+      flex: none; width: 1.15rem; height: 1.15rem; margin-top: 0.25rem;
+      accent-color: var(--accent);
+    }
 
     /* ── FOOTER ── */
     footer {
@@ -183,7 +200,7 @@
     <article class="legal">
       <div class="section-label">Legal</div>
       <h1>Privacy Policy</h1>
-      <p class="updated">Effective Date: October 9, 2026 &nbsp;&middot;&nbsp; Last Updated: October 9, 2026</p>
+      <p class="updated">Effective Date: October 9, 2026 &nbsp;&middot;&nbsp; Last Updated: November 1, 2026</p>
 
       <p>
         This Privacy Policy (this &ldquo;Policy&rdquo;) describes how The Graceful Company, LLC, a Florida limited
@@ -207,7 +224,7 @@
         <ol>
           <li><a href="#scope">Scope of This Policy</a></li>
           <li><a href="#definitions">Definitions</a></li>
-          <li><a href="#commonsway">CommonsWay</a></li>
+          <li><a href="#commonsway">CommonsWay and Text Messages</a></li>
           <li><a href="#collect">Information We Collect</a></li>
           <li><a href="#cookies">Cookies and Similar Technologies</a></li>
           <li><a href="#use">How We Use Information</a></li>
@@ -282,7 +299,8 @@
         </li>
       </ul>
 
-      <h2 id="commonsway">3. CommonsWay</h2>
+      <h2 id="commonsway">3. CommonsWay and Text Messages</h2>
+      <h3>3.1 CommonsWay</h3>
       <p>
         The Graceful Company, doing business as CommonsWay, operates the CommonsWay platform. When you use
         CommonsWay, The Graceful Company collects and processes your information as described in the CommonsWay
@@ -290,7 +308,7 @@
         <a class="inline" href="https://commonsway.com/privacy" target="_blank" rel="noopener">commonsway.com/privacy</a>,
         which is part of this policy.
       </p>
-      <h3>CommonsWay text messages (SMS)</h3>
+      <h3>3.2 CommonsWay text messages (SMS)</h3>
       <p>
         We collect your mobile number and your consent to receive texts when you tick the SMS consent box on a
         CommonsWay form. We use them only to send the CommonsWay messages you agreed to: sign-in and verification
@@ -307,6 +325,42 @@
       <p>
         You can opt out at any time by replying STOP, or get help by replying HELP or emailing
         <a class="inline" href="mailto:support@commonsway.com">support@commonsway.com</a>.
+      </p>
+
+      <h3 id="text-privacy">3.3 Privacy policy for text messages: The Graceful Company service updates</h3>
+      <p>
+        <strong>Who we are.</strong> The Graceful Company, LLC. Contact:
+        <a class="inline" href="mailto:hi@thegracefulcompany.com">hi@thegracefulcompany.com</a>,
+        <a class="inline" href="tel:+19545931222">(954) 593-1222</a>.
+      </p>
+      <p>
+        <strong>What we collect for text messages.</strong> Your mobile number, your agreement to receive texts and
+        when you gave it, and the texts and photos we send and receive.
+      </p>
+      <p>
+        <strong>How we use it.</strong> Only to send the kinds of texts listed on our texts page
+        (<a class="inline break" href="https://www.thegracefulcompany.com/texts/">https://www.thegracefulcompany.com/texts/</a>)
+        and to answer you.
+      </p>
+      <p><strong>Sharing.</strong></p>
+      <div class="callout">
+        <p>
+          No mobile information will be shared with third parties or affiliates for marketing or promotional
+          purposes. Text messaging originator opt-in data and consent will not be shared with any third parties.
+        </p>
+      </div>
+      <p>We share it only with the providers that deliver our texts, and only to deliver them.</p>
+      <p>
+        <strong>How long we keep it.</strong> As long as you receive our texts, and as the law requires after that.
+        To have your number removed, email
+        <a class="inline" href="mailto:hi@thegracefulcompany.com">hi@thegracefulcompany.com</a>.
+      </p>
+      <p><strong>Stopping texts.</strong> Reply STOP to any text. Reply HELP for help.</p>
+      <p>
+        This section is also published as a standalone page at
+        <a class="inline break" href="https://www.thegracefulcompany.com/texts/privacy/">https://www.thegracefulcompany.com/texts/privacy/</a>.
+        Texting terms:
+        <a class="inline break" href="https://www.thegracefulcompany.com/texts/terms/">https://www.thegracefulcompany.com/texts/terms/</a>.
       </p>
 
       <h2 id="collect">4. Information We Collect</h2>
@@ -338,8 +392,9 @@
           materials, payment and tax information, and the terms of our relationship.
         </li>
         <li>
-          <strong>Mobile number and SMS consent:</strong> as described in Section&nbsp;3, when you provide a
-          mobile number and consent on a CommonsWay form.
+          <strong>Mobile number, SMS consent, and text messages:</strong> as described in Section&nbsp;3, when
+          you provide a mobile number and consent on a CommonsWay form or on The Graceful Company&rsquo;s client
+          portal, including the texts and photos we send and receive.
         </li>
         <li>
           <strong>Feedback and testimonials:</strong> any feedback, reviews, or testimonials you choose to
@@ -488,7 +543,7 @@
         <li>
           <strong>Service Providers.</strong> We disclose Personal Information to Service Providers that perform
           services on our behalf, such as website hosting and content delivery, web font delivery, email and
-          communications providers, SMS delivery providers (solely to transmit CommonsWay messages), cloud storage,
+          communications providers, SMS delivery providers (solely to deliver our text messages), cloud storage,
           payment processing, accounting, and professional advisors. Service Providers are contractually
           restricted from using Personal Information for any purpose other than providing services to us.
         </li>
@@ -636,8 +691,8 @@
           relationship messages, such as those relating to an active engagement.
         </li>
         <li>
-          <strong>Text messages.</strong> You may opt out of CommonsWay text messages at any time by replying
-          STOP, as described in Section&nbsp;3.
+          <strong>Text messages.</strong> You may opt out of text messages from CommonsWay or The Graceful Company
+          at any time by replying STOP to any text, as described in Section&nbsp;3. Reply HELP for help.
         </li>
         <li>
           <strong>Browser settings.</strong> You may configure your browser to block or alert you to cookies and
@@ -855,6 +910,7 @@
         <p><strong>The Graceful Company, LLC</strong><br />
         Attn: Privacy<br />
         Email: <a class="inline" href="mailto:hi@thegracefulcompany.com">hi@thegracefulcompany.com</a><br />
+        Phone: <a class="inline" href="tel:+19545931222">(954) 593-1222</a><br />
         Website: <a class="inline" href="https://www.thegracefulcompany.com">thegracefulcompany.com</a></p>
         <p><strong>CommonsWay</strong> (a d/b/a of The Graceful Company, LLC)<br />
         Email: <a class="inline" href="mailto:support@commonsway.com">support@commonsway.com</a><br />
@@ -870,6 +926,7 @@
       <div class="footer-links">
         <a href="../privacy/">Privacy Policy</a>
         <a href="../terms/">Terms &amp; Conditions</a>
+        <a href="../texts/">Text Messages</a>
         <a href="mailto:hi@thegracefulcompany.com">Contact</a>
       </div>
       <div class="footer-copy">&copy; 2026 The Graceful Company. All rights reserved.</div>

@@ -120,7 +120,8 @@
     .legal .toc li + li { margin-top: 0; }
     .legal .toc a { color: var(--text-muted); transition: color 0.2s; }
     .legal .toc a:hover { color: var(--white); }
-    .legal h2 { scroll-margin-top: 6rem; }
+    .legal h2, .legal h3 { scroll-margin-top: 6rem; }
+    .legal a[href^="tel:"] { white-space: nowrap; }
     .legal .callout {
       margin: 1.25rem 0;
       border-left: 3px solid var(--accent);
@@ -137,6 +138,22 @@
       color: var(--text-muted);
     }
     .legal th { color: var(--white); font-weight: 600; background: var(--surface); }
+
+    .legal a.break { overflow-wrap: anywhere; }
+    .legal .consent-box {
+      display: flex; gap: 0.9rem; align-items: flex-start;
+      margin: 1.25rem 0;
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      padding: 1.25rem 1.4rem;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    .legal .consent-box input {
+      flex: none; width: 1.15rem; height: 1.15rem; margin-top: 0.25rem;
+      accent-color: var(--accent);
+    }
 
     /* ── FOOTER ── */
     footer {
@@ -183,7 +200,7 @@
     <article class="legal">
       <div class="section-label">Legal</div>
       <h1>Terms &amp; Conditions</h1>
-      <p class="updated">Effective Date: October 9, 2026 &nbsp;&middot;&nbsp; Last Updated: October 9, 2026</p>
+      <p class="updated">Effective Date: October 9, 2026 &nbsp;&middot;&nbsp; Last Updated: November 1, 2026</p>
 
       <p>
         These Terms &amp; Conditions (these &ldquo;Terms&rdquo;) constitute a legally binding agreement between you
@@ -206,7 +223,7 @@
         <ol>
           <li><a href="#acceptance">Acceptance of Terms</a></li>
           <li><a href="#definitions">Definitions</a></li>
-          <li><a href="#commonsway">CommonsWay</a></li>
+          <li><a href="#commonsway">CommonsWay and Text Messages</a></li>
           <li><a href="#changes">Changes to These Terms</a></li>
           <li><a href="#eligibility">Eligibility</a></li>
           <li><a href="#services">Our Services; Client Agreements</a></li>
@@ -268,7 +285,8 @@
         </li>
       </ul>
 
-      <h2 id="commonsway">3. CommonsWay</h2>
+      <h2 id="commonsway">3. CommonsWay and Text Messages</h2>
+      <h3>3.1 CommonsWay</h3>
       <p>
         CommonsWay is a software platform owned and operated by The Graceful Company, which does business under
         the name CommonsWay. It helps service companies run their operations and client portals. The CommonsWay
@@ -276,7 +294,7 @@
         <a class="inline" href="https://commonsway.com/terms" target="_blank" rel="noopener">commonsway.com/terms</a>
         govern your use of CommonsWay and are part of these terms.
       </p>
-      <h3>CommonsWay text messages (SMS)</h3>
+      <h3>3.2 CommonsWay text messages (SMS)</h3>
       <p>
         The Graceful Company sends text messages under the CommonsWay name from CommonsWay&rsquo;s own number.
         Every message starts with &ldquo;CommonsWay:&rdquo;. We send:
@@ -308,6 +326,43 @@
       <p>
         In the event of any conflict between these Terms and the CommonsWay Terms of Service with respect to your
         use of CommonsWay, the CommonsWay Terms of Service shall control.
+      </p>
+
+      <h3 id="texting-terms">3.3 Texting terms: The Graceful Company service updates</h3>
+      <p>
+        <strong>Program.</strong> The Graceful Company service updates. Sent by The Graceful Company, LLC. No
+        marketing.
+      </p>
+      <ul>
+        <li>Updates when your request is received, scheduled and done</li>
+        <li>A reminder the day before a visit</li>
+        <li>Estimates and invoices when they&rsquo;re ready to view</li>
+        <li>Replies to your messages, sometimes with photos</li>
+        <li>Job assignments, for our own crew members</li>
+      </ul>
+      <p>
+        <strong>How to sign up.</strong> Sign up on The Graceful Company&rsquo;s client portal: use the sign-up link
+        your community received from The Graceful Company, or ask us for it. On the sign-up form, tick the box that
+        reads: &ldquo;Text me at that number about my requests with The Graceful Company and about my account.
+        Message frequency varies with activity on your requests. Msg &amp; data rates may apply. Reply HELP for help
+        or STOP to opt out.&rdquo; The box starts unticked and isn&rsquo;t needed to sign up or to send us a request.
+      </p>
+      <p>
+        <strong>How often.</strong> Message frequency varies with activity on your requests. Msg &amp; data rates
+        may apply.
+      </p>
+      <p>
+        <strong>Stopping and help.</strong> Reply STOP to cancel at any time. Reply HELP for help. Support:
+        <a class="inline" href="mailto:hi@thegracefulcompany.com">hi@thegracefulcompany.com</a>.
+      </p>
+      <p><strong>Carriers.</strong> Carriers are not liable for delayed or undelivered messages.</p>
+      <p>
+        <strong>Privacy.</strong> Privacy policy for text messages:
+        <a class="inline break" href="https://www.thegracefulcompany.com/texts/privacy/">https://www.thegracefulcompany.com/texts/privacy/</a>.
+        See also our text messages page at
+        <a class="inline break" href="https://www.thegracefulcompany.com/texts/">https://www.thegracefulcompany.com/texts/</a>
+        and the standalone texting terms at
+        <a class="inline break" href="https://www.thegracefulcompany.com/texts/terms/">https://www.thegracefulcompany.com/texts/terms/</a>.
       </p>
 
       <h2 id="changes">4. Changes to These Terms</h2>
@@ -638,7 +693,7 @@
         When you visit the Site or send emails to us, you are communicating with us electronically. You consent to
         receive communications from us electronically and agree that all agreements, notices, disclosures, and other
         communications that we provide to you electronically satisfy any legal requirement that such communications
-        be in writing. Text messages sent under the CommonsWay name are governed by Section&nbsp;3.
+        be in writing. Text messages are governed by Section&nbsp;3.
       </p>
 
       <h2 id="general">24. General Provisions</h2>
@@ -710,6 +765,7 @@
       <div class="footer-links">
         <a href="../privacy/">Privacy Policy</a>
         <a href="../terms/">Terms &amp; Conditions</a>
+        <a href="../texts/">Text Messages</a>
         <a href="mailto:hi@thegracefulcompany.com">Contact</a>
       </div>
       <div class="footer-copy">&copy; 2026 The Graceful Company. All rights reserved.</div>
